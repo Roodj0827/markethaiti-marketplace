@@ -372,7 +372,7 @@
   <script>
     "use strict";
 
-    const API_BASE = (() => {
+cconst BASE_URL = "https://markethaiti-backend.onrender.com"; => {
       const q = new URLSearchParams(window.location.search);
       if (q.get("api")) return q.get("api").replace(/\/$/, "");
       if (window.location.protocol === "file:") return "http://127.0.0.1:8000";
