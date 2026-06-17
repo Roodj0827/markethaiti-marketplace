@@ -733,8 +733,8 @@
             <button class="auth-tab ${state.authMode === "signup" ? "active" : ""}" type="button" data-auth-type="signup">S'inscrire</button>
           </div>
           <form id="authForm" class="form-grid">
-            ${state.authMode === "signup" ? `<div class="field full"><label for="authName">Nom complet</label><input id="authName" type="text" required placeholder="Jean Pierre"></div><div class="field full"><label for="authUsername">Nom d'utilisateur</label><input id="authUsername" type="text" required placeholder="@jerry25"></div>` : ``}
-            <div class="field full"><label for="authCredential">${state.authMode === "signin" ? "Téléphone ou nom d'utilisateur" : "Téléphone"}</label><input id="authCredential" type="text" required placeholder="${state.authMode === "signin" ? "+509... ou @jerry25" : "+509..."}"></div>
+            ${state.authMode === "signup" ? `<div class="field full"><label for="authName">Nom complet</label><input id="authName" type="text" required placeholder="James Pierre"></div><div class="field full"><label for="authUsername">Nom d'utilisateur</label><input id="authUsername" type="text" required placeholder="@james25"></div>` : ``}
+            <div class="field full"><label for="authCredential">${state.authMode === "signin" ? "Téléphone ou nom d'utilisateur" : "Téléphone"}</label><input id="authCredential" type="text" required placeholder="${state.authMode === "signin" ? "+509... ou @james25" : "+509..."}"></div>
             <div class="field full"><label for="authPassword">Mot de passe</label><input id="authPassword" type="password" required placeholder="Mot de passe sécurisé"></div>
             <div class="field full"><button class="btn-primary" type="submit"><i class="fa-solid fa-right-to-bracket"></i> ${state.authMode === "signin" ? "Connexion" : "Créer un compte"}</button></div>
             <p id="authError" class="error-text"></p>
