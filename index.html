@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MarketHaiti - Boutique Cliente Refactorisée</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.0/dist/module.js" type="module"></script>
+  <style>
+    :root {
+      --brand: #E63946; --brand-dark: #c1121f; --brand-light: #ffeaec; --gold: #F4A261;
+      --dark: #1a1a2e; --dark2: #16213e; --surface: #f8f7f4; --surface2: #ffffff;
+      --border: #e8e6e1; --text: #1a1a2e; --text2: #6b7280; --text3: #9ca3af;
+      --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --info: #3b82f6;
+      --radius: 14px; --radius-sm: 8px; --shadow: 0 2px 12px rgba(0,0,0,0.08); --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--surface); color: var(--text); font-family: "DM Sans", sans-serif; line-height: 1.6; }
+    h1, h2, h3, h4 { font-family: "Syne", sans-serif; letter-spacing: 0; }
+    button, input, textarea, select { font: inherit; } button { cursor: pointer; } img { display: block; max-width: 100%; }
+
+    .site-header { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,0.92); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); }
+    .header-inner { max-width: 1180px; margin: 0 auto; padding: 14px 20px; display: grid; grid-template-columns: auto minmax(180px, 1fr) auto; gap: 18px; align-items: center; }
+    .brand { border: 0; background: transparent; color: var(--dark); display: inline-flex; align-items: center; gap: 10px; font-family: "Syne", sans-serif; font-weight: 800; font-size: 20px; }
+    .brand-mark { width: 36px; height: 36px; border-radius: 10px; background: var(--brand); color: white; display: grid; place-items: center; box-shadow: 0 10px 24px rgba(230,57,70,0.25); }
+    .search-wrap { position: relative; }
+    .search-wrap i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text3); }
+    .search-input { width: 100%; border: 1.5px solid var(--border); border-radius: 999px; padding: 12px 16px 12px 42px; background: white; color: var(--text); outline: none; }
+    .search-input:focus { border-color: var(--brand); box-shadow: 0 0 0 4px rgba(230,57,70,0.1); }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .icon-btn, .text-btn { min-width: 42px; height: 42px; border-radius: 999px; border: 1.5px solid var(--border); background: white; color: var(--dark); display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s ease; }
+    .text-btn { padding: 0 16px; font-weight: 700; }
+    .icon-btn:hover, .text-btn:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-light); }
+    .cart-button { position: relative; background: var(--dark); color: white; border-color: var(--dark); }
+    .cart-button:hover { background: var(--brand); color: white; border-color: var(--brand); }
+    .cart-badge { position: absolute; top: -6px; right: -5px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--brand); color: white; display: grid; place-items: center; font-size: 11px; font-weight: 800; border: 2px solid white; }
+
+    .hero { background: linear-gradient(135deg, var(--dark) 0%, var(--dark2) 58%, #0f3460 100%); color: white; position: relative; overflow: hidden; padding: 58px 20px 44px; }
+    .hero:before { content: ""; position: absolute; width: 460px; height: 460px; border-radius: 50%; right: -150px; top: -210px; background: radial-gradient(circle, rgba(230,57,70,0.22), transparent 68%); }
+    .hero-inner { max-width: 1180px; margin: 0 auto; position: relative; display: grid; gap: 32px; }
+    .hero-copy { max-width: 640px; }
+    .hero-banner { display: block; position: relative; left: 50%; transform: translateX(-50%); width: calc(100vw - 40px); max-width: calc(100vw - 40px); margin: 0 0 18px; padding: 14px 18px; border-radius: 999px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18); color: #fff; font-size: clamp(13px, 1.1vw, 15px); font-weight: 700; overflow: hidden; min-height: 48px; box-sizing: border-box; }
+    .hero-banner__text { display: inline-block; white-space: nowrap; animation: marquee 16s linear infinite; padding-right: 100%; }
+    @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+    .hero h1 { font-size: clamp(34px, 6vw, 62px); line-height: 1.05; font-weight: 800; margin-bottom: 16px; }
+    .hero h1 span { color: var(--brand); }
+    .hero p { max-width: 560px; color: rgba(255,255,255,0.74); font-size: 18px; margin-bottom: 28px; }
+    .hero-actions, .empty-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .announcement-banner { margin: 18px 0 0; padding: 12px 16px; border-radius: 12px; background: rgba(255,255,255,0.18); color: white; border: 1px solid rgba(255,255,255,0.35); font-weight: 700; }
+
+    .btn-primary, .btn-outline, .btn-soft, .btn-danger { border: 0; border-radius: 10px; padding: 13px 20px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; gap: 9px; transition: 0.2s ease; text-decoration: none; }
+    .btn-primary { background: var(--brand); color: white; } .btn-primary:hover { background: var(--brand-dark); }
+    .btn-outline { background: transparent; color: white; border: 1.5px solid rgba(255,255,255,0.35); } .btn-outline:hover { border-color: white; background: rgba(255,255,255,0.09); }
+    .btn-soft { background: var(--brand-light); color: var(--brand); }
+    .btn-danger { background: #fee2e2; color: var(--danger); }
+
+    .main { max-width: 1180px; margin: 0 auto; padding: 30px 20px 70px; }
+    .promo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 34px; }
+    .promo-card { border: 0; text-align: left; border-radius: var(--radius); padding: 22px; color: white; overflow: hidden; min-height: 142px; transition: 0.2s ease; }
+    .promo-card:hover { transform: translateY(-3px); }
+    .promo-card.red { background: linear-gradient(135deg, #E63946, #c1121f); }
+    .promo-card.blue { background: linear-gradient(135deg, #1d3557, #457b9d); }
+    .promo-card.gold { background: linear-gradient(135deg, #f4a261, #e76f51); }
+    .promo-tag { display: inline-block; background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; margin-bottom: 10px; }
+    .promo-card h3 { font-size: 20px; margin-bottom: 4px; }
+    .promo-card p { opacity: 0.82; font-size: 13px; }
+
+    .section-header { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+    .section-title { font-size: 26px; font-weight: 800; color: var(--dark); }
+    .muted { color: var(--text2); font-size: 14px; }
+    .filter-panel { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; margin-bottom: 22px; box-shadow: var(--shadow); }
+    .filter-bar, .vendor-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-btn { padding: 8px 15px; border-radius: 999px; font-size: 13px; font-weight: 700; border: 1.5px solid var(--border); background: white; color: var(--text2); transition: 0.2s ease; }
+    .filter-btn.active, .filter-btn:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-light); }
+    .sort-select { height: 40px; border: 1.5px solid var(--border); border-radius: 10px; padding: 0 12px; background: white; color: var(--text); outline: none; }
+
+    .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
+    .product-card { background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; transition: 0.25s ease; position: relative; }
+    .product-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: transparent; }
+    .product-image-wrap { height: 210px; background: var(--surface); position: relative; overflow: hidden; }
+    .product-image-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .image-fallback { width: 100%; height: 100%; display: grid; place-items: center; color: var(--text3); font-size: 48px; }
+    .product-info { padding: 15px 16px 16px; }
+    .product-vendor { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text3); font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; margin-bottom: 6px; }
+    .vendor-logo { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; background: var(--surface); border: 1px solid var(--border); }
+    .product-name { font-size: 16px; font-weight: 800; margin-bottom: 6px; line-height: 1.25; }
+    .product-desc { color: var(--text2); font-size: 13px; min-height: 40px; margin-bottom: 12px; }
+    .product-price-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .product-price { color: var(--brand); font-family: "Syne"; font-size: 19px; font-weight: 800; }
+    .add-to-cart { width: 38px; height: 38px; border-radius: 50%; background: var(--brand); color: white; border: 0; display: grid; place-items: center; transition: 0.2s ease; flex: 0 0 auto; }
+    .add-to-cart:hover { background: var(--brand-dark); transform: scale(1.08); }
+    .empty-state { background: white; border: 1px dashed var(--border); border-radius: var(--radius); padding: 34px; text-align: center; color: var(--text2); }
+    .empty-state i { color: var(--brand); font-size: 34px; margin-bottom: 10px; }
+
+    .cart-overlay, .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.48); z-index: 80; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+    .cart-overlay.open, .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .cart-panel { position: fixed; top: 0; right: 0; z-index: 90; width: 410px; max-width: 100vw; height: 100vh; background: white; transform: translateX(100%); transition: transform 0.32s ease; display: flex; flex-direction: column; box-shadow: -8px 0 40px rgba(0,0,0,0.18); }
+    .cart-panel.open { transform: translateX(0); }
+    .panel-header, .modal-header { padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .panel-header h3, .modal-header h3 { font-size: 18px; font-weight: 800; }
+    .close-btn { width: 36px; height: 36px; border: 0; border-radius: 50%; background: var(--surface); color: var(--text2); cursor: pointer; }
+    .cart-items { flex: 1; overflow: auto; padding: 8px 20px; }
+    .cart-item { display: grid; grid-template-columns: 64px 1fr; gap: 13px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .cart-item img { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; background: var(--surface); }
+    .cart-item-name { font-weight: 800; font-size: 14px; line-height: 1.25; }
+    .cart-item-vendor { color: var(--text3); font-size: 12px; }
+    .cart-item-price { color: var(--brand); font-family: "Syne"; font-weight: 800; margin-top: 4px; }
+    .qty-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+    .qty-control { display: flex; align-items: center; gap: 7px; }
+    .qty-btn { width: 28px; height: 28px; border-radius: 7px; border: 1.5px solid var(--border); background: white; }
+    .remove-btn { border: 0; background: transparent; color: var(--danger); font-weight: 800; font-size: 12px; }
+    .cart-footer { padding: 18px 20px 20px; border-top: 1px solid var(--border); background: white; }
+    .total-row { display: flex; align-items: center; justify-content: space-between; font-weight: 800; margin-bottom: 14px; }
+    .total-row strong { color: var(--brand); font-family: "Syne"; font-size: 22px; }
+    .cart-footer .btn-primary { width: 100%; }
+
+    .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -46%) scale(0.98); z-index: 95; width: min(680px, calc(100vw - 30px)); max-height: min(760px, calc(100vh - 30px)); background: white; border-radius: var(--radius); opacity: 0; pointer-events: none; transition: 0.25s ease; box-shadow: var(--shadow-lg); overflow: hidden; display: flex; flex-direction: column; }
+    .modal.open { opacity: 1; pointer-events: all; transform: translate(-50%, -50%) scale(1); }
+    .modal-body { padding: 20px; overflow: auto; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .field { display: grid; gap: 7px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-size: 13px; font-weight: 800; color: var(--dark); }
+    .field input, .field textarea, .field select { width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 12px; outline: none; background: white; }
+    .field textarea { min-height: 84px; resize: vertical; }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--brand); box-shadow: 0 0 0 4px rgba(230,57,70,0.08); }
+    .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .auth-tab { border: 1.5px solid var(--border); background: white; border-radius: 10px; padding: 10px; font-weight: 800; }
+    .auth-tab.active { color: var(--brand); background: var(--brand-light); border-color: var(--brand); }
+    .order-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 15px; background: var(--surface2); margin-bottom: 12px; display: grid; gap: 8px; }
+    .status-pill { display: inline-flex; width: fit-content; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 800; }
+    .status-pill.pending { background:#fef3c7; color:#b45309; }
+    .status-pill.validated { background:#dbeafe; color:#1e40af; }
+    .status-pill.shipping { background:#fce7f3; color:#be185d; }
+    .status-pill.delivered { background:#dcfce7; color:#166534; }
+    .error-text { color: var(--danger); font-size: 13px; font-weight: 700; margin-top: 10px; min-height: 18px; }
+    .payment-details-box { background: var(--brand-light); border: 1px solid var(--brand); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+    .payment-details-box strong { color: var(--brand); display: block; margin-bottom: 8px; }
+    .payment-detail-item { background: white; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 13px; }
+    .payment-detail-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:6px 0; }
+    .payment-detail-row span { flex:1; }
+
+    #supportBubble { position: fixed; bottom: 20px; right: 20px; z-index: 99; width: min(320px, calc(100vw - 28px)); }
+    .support-link { display: flex; align-items: center; gap: 12px; background: #25d366; color: white; padding: 14px 16px; border-radius: 999px; box-shadow: 0 18px 40px rgba(37, 211, 102, 0.25); text-decoration: none; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .support-link:hover { transform: translateY(-2px); box-shadow: 0 22px 48px rgba(37, 211, 102, 0.28); }
+    .support-icon { width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,0.2); display: grid; place-items: center; font-size: 18px; }
+    .support-content strong { display: block; font-size: 14px; line-height: 1.2; }
+    .support-content small { display: block; font-size: 12px; opacity: 0.92; margin-top: 2px; }
+
+    .site-footer { border-top: 1px solid var(--border); padding: 24px 20px; color: var(--text2); text-align: center; background: white; }
+
+    @media (max-width: 1024px) {
+      .products-grid { grid-template-columns: repeat(2, 1fr); }
+      .promo-grid { grid-template-columns: 1fr; }
+      .filter-panel { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 820px) {
+      .header-inner { grid-template-columns: 1fr auto; gap: 12px; }
+      .search-wrap { grid-column: 1 / -1; order: 3; margin-top: 8px; }
+      .promo-grid { grid-template-columns: 1fr; }
+      .filter-panel { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .products-grid { grid-template-columns: repeat(2, 1fr); }
+      .hero { padding: 60px 20px 40px; }
+      .main { padding: 20px; }
+    }
+    @media (max-width: 640px) {
+      .header-inner { padding: 14px 16px; gap: 10px; flex-wrap: wrap; }
+      .brand { font-size: 18px; gap: 6px; }
+      .brand span:last-child { display: none; }
+      .text-btn span { display: none; }
+      .hero { padding: 42px 16px 34px; }
+      .hero h1 { font-size: 24px; }
+      .hero p { font-size: 14px; }
+      .main { padding: 16px; }
+      .products-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .cart-panel { width: 100vw; max-width: 100vw; right: 0; }
+      .filter-panel { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .modal { width: 90vw; }
+      .footer { padding: 20px 16px; font-size: 12px; }
+    }
+    @media (max-width: 540px) {
+      .header-inner { padding: 12px 14px; gap: 10px; }
+      .brand span:last-child { display: none; }
+      .text-btn span { display: none; }
+      .hero { padding: 42px 16px 34px; }
+      .hero h1 { font-size: 20px; }
+      .main { padding: 12px; }
+      .products-grid { grid-template-columns: 1fr; }
+      .cart-panel { width: 100vw; }
+      .filter-btn { padding: 8px 10px; font-size: 12px; }
+      .product-card { border-radius: 8px; }
+      .btn { padding: 8px 12px; font-size: 12px; }
+      .modal { width: 95vw; }
+      .form-grid input, .form-grid textarea, .form-grid select { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <button class="brand" type="button" data-action="home" aria-label="Accueil MarketHaiti">
+        <img id="brandLogo" src="" alt="Logo" style="width:40px;height:40px;border-radius:12px;object-fit:cover;vertical-align:middle;">
+        <span id="brandName">MarketHaiti</span>
+      </button>
+      <label class="search-wrap" aria-label="Rechercher un produit">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="searchInput" class="search-input" type="search" placeholder="Rechercher produits, vendeurs, catégories...">
+      </label>
+      <div class="header-actions">
+        <button id="accountBtn" class="text-btn" type="button" title="Mon Compte">
+          <i class="fa-regular fa-user"></i><span>Compte</span>
+        </button>
+        <button id="cartBtn" class="icon-btn cart-button" type="button" title="Panier">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span id="cartBadge" class="cart-badge">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero" id="top">
+    <div class="hero-inner">
+      <div id="announcementBanner" class="hero-banner" hidden>
+        <span class="hero-banner__text">Annonces</span>
+      </div>
+      <div class="hero-copy">
+        <h1>Les meilleurs produits locaux, livrés avec <span>confiance</span>.</h1>
+        <p>Explorez des boutiques vérifiées, ajoutez au panier en un geste et suivez vos commandes depuis votre compte téléphone.</p>
+        <div class="hero-actions">
+          <button class="btn-primary" type="button" data-scroll-products><i class="fa-solid fa-store"></i> Acheter maintenant</button>
+          <button class="btn-outline" type="button" data-open-account><i class="fa-regular fa-user"></i> Mon compte</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="main">
+    <section id="productsSection">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Boutique <span>client</span></h2>
+          <p id="resultSummary" class="muted">Catalogue disponible.</p>
+        </div>
+        <button class="btn-soft" type="button" id="resetFilters"><i class="fa-solid fa-rotate-left"></i> Réinitialiser</button>
+      </div>
+
+      <div class="filter-panel">
+        <div>
+          <div id="categoryFilters" class="filter-bar" aria-label="Filtres catégories"></div>
+          <div id="vendorFilters" class="vendor-bar" aria-label="Filtres vendeurs" style="margin-top:10px"></div>
+        </div>
+        <select id="sortSelect" class="sort-select" aria-label="Tri du catalogue">
+          <option value="featured">Tri recommandé</option>
+          <option value="priceAsc">Prix croissant</option>
+          <option value="priceDesc">Prix décroissant</option>
+          <option value="stockAsc">Stock faible</option>
+          <option value="nameAsc">Nom A-Z</option>
+        </select>
+      </div>
+
+      <div id="productsGrid" class="products-grid"></div>
+      <div id="emptyProducts" class="empty-state" hidden>
+        <i class="fa-regular fa-face-smile"></i>
+        <h3>Aucun produit trouvé</h3>
+        <p>Essayez une autre recherche, catégorie ou boutique.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; 2026 MarketHaiti — Boutique client refactorisée | Tous les produits proviennent de vendeurs vérifiés.</p>
+  </footer>
+
+  <div id="supportBubble"></div>
+
+  <!-- OVERLAYS & MODALS -->
+  <div id="cartOverlay" class="cart-overlay"></div>
+  <div id="cartPanel" class="cart-panel">
+    <div class="panel-header">
+      <h3>Panier</h3>
+      <button id="closeCart" class="close-btn" type="button"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="cartItems" class="cart-items"></div>
+    <div class="cart-footer">
+      <div class="total-row"><span>Total</span><strong id="cartTotal">0 HTG</strong></div>
+      <button id="checkoutBtn" class="btn-primary" type="button"><i class="fa-solid fa-lock"></i> Passer la commande</button>
+    </div>
+  </div>
+
+  <div id="modalOverlay" class="modal-overlay"></div>
+  
+  <!-- ACCOUNT MODAL -->
+  <div id="accountModal" class="modal" aria-label="Compte Client">
+    <div class="modal-header">
+      <h3>Mon Compte</h3>
+      <button class="close-btn" type="button" data-close-modal><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div id="accountContent"></div>
+    </div>
+  </div>
+
+  <!-- CHECKOUT MODAL -->
+  <div id="checkoutModal" class="modal" aria-label="Checkout">
+    <div class="modal-header">
+      <h3>Finaliser la commande</h3>
+      <button class="close-btn" type="button" data-close-modal><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="checkoutForm" class="form-grid">
+        <div class="field full">
+          <label for="deliveryAddress">Adresse de livraison</label>
+          <textarea id="deliveryAddress" required placeholder="Rue, commune, repère, ville"></textarea>
+        </div>
+        <div class="field">
+          <label for="deliveryPhone">Téléphone de réception</label>
+          <input id="deliveryPhone" type="tel" required>
+        </div>
+        <div class="field full"><label for="orderNotes">Notes additionnelles</label><textarea id="orderNotes" placeholder="Informations de livraison ou repère spécial"></textarea></div>
+        <div class="field full" style="background:var(--brand-light);border:2px solid var(--brand);border-radius:10px;padding:14px;">
+          <strong style="font-size:14px;color:var(--brand);">💰 MONTANT À PAYER</strong>
+          <div style="font-family:Syne;font-size:28px;font-weight:800;color:var(--brand);margin-top:8px;" id="checkoutTotal">0 HTG</div>
+        </div>
+        <div class="field">
+          <label for="paymentMethod">Méthode de paiement</label>
+          <select id="paymentMethod" required>
+            <option value="Paiement à la livraison">Paiement à la livraison</option>
+            <option value="MonCash">MonCash</option>
+            <option value="NatCash">NatCash</option>
+            <option value="Compte bancaire">Compte bancaire</option>
+          </select>
+        </div>
+        <!-- AFFICHAGE DYNAMIQUE COMPTES PAIEMENT -->
+        <div id="paymentDetailsBox" class="field full" hidden>
+          <div class="payment-details-box">
+            <strong>📱 Détails du paiement</strong>
+            <div id="paymentDetails"></div>
+          </div>
+        </div>
+        <!-- PREUVE DE PAIEMENT -->
+        <div id="proofUploadBox" class="field full" hidden>
+          <label for="paymentProof">📸 Preuve du paiement (capture d'écran)</label>
+          <input id="paymentProof" type="file" accept="image/*" required>
+          <p class="muted" style="margin-top:8px;font-size:12px;">Uploadez une capture de votre transaction pour validation</p>
+        </div>
+        <div class="field full">
+          <button class="btn-primary" type="submit"><i class="fa-solid fa-check"></i> Valider la commande</button>
+          <p id="checkoutError" class="error-text" role="alert"></p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    // SUPABASE CONFIGURATION
+    const SUPABASE_URL = "https://ishbmvzuwdygepwhduug.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlzaGJtdnp1d2R5Z2Vwd2hkdXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNDc1MzQsImV4cCI6MjA5NjcyMzUzNH0.VRmc4tJei93sO2cD7OFYCSaPRjMS8lt3hL5vXp145EY";
+    
+    let supabase = null;
+
+    // Dynamically import and initialize Supabase
+    (async () => {
+      const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.0/+esm');
+      supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      initializeApp();
+    })();
+
+    const STORAGE = {
+      session: "mh_customer_session_v2", cart: "mh_cart_v2"
+    };
+
+    const DEFAULT_SETTINGS = {
+      storeName: "MarketHaiti",
+      storeLogoUrl: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=160&q=80",
+      brandColor: "#E63946",
+      supportPhone: "+50941641700"
+    };
+
+    const DEFAULT_ANNOUNCEMENTS = {
+      active: false,
+      message: "Profitez des nouveautés et des promotions directement sur notre boutique !",
+      textColor: "#ffffff"
+    };
+
+    const DEFAULT_PAYMENTS = {
+      moncash: { numbers: [], account: "" },
+      natcash: { numbers: [], account: "" },
+      bank: { accountHolder: "", accountNumber: "", bankName: "" }
+    };
+
+    const state = {
+      products: [], customers: [], orders: [], cart: [], settings: {}, payments: {}, announcements: {},
+      currentCustomer: null, authMode: "signin", filters: { category: "", vendor: "", search: "", sort: "featured" }
+    };
+
+    // Utilitaires
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+    const money = (amt) => `${Number(amt || 0).toLocaleString("fr-HT")} HTG`;
+    const uid = (prefix) => {
+      if (prefix === "order") {
+        const ts = Date.now().toString(36).toUpperCase();
+        const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+        return `order-${ts}${rand}`;
+      }
+      return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    };
+    const safeText = (val) => String(val ?? "");
+
+    // SHA-256 pour mot de passe
+    async function sha256(val) {
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(val));
+      return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    // Storage - Supabase integration
+    async function readStore(table, fallback) {
+      try {
+        if (!supabase) return fallback;
+        const { data, error } = await supabase.from(table).select("*");
+        if (error) { console.error(`Supabase error reading ${table}:`, error); return fallback; }
+
+        if (table === "settings" || table === "announcements" || table === "payments") {
+          return data && data.length > 0 ? data[0] : fallback;
+        }
+        return data || fallback;
+      } catch (err) {
+        console.error(`Error in readStore(${table}):`, err);
+        return fallback;
+      }
+    }
+
+    async function writeStore(table, val) {
+      try {
+        if (!supabase) return;
+
+        if (table === "settings" || table === "announcements" || table === "payments") {
+          const { error } = await supabase.from(table).upsert([{ ...val, id: "main" }], { onConflict: "id" });
+          if (error) console.error(`Supabase error writing to ${table}:`, error);
+        } else if (Array.isArray(val)) {
+          const { error } = await supabase.from(table).upsert(val, { onConflict: "id" });
+          if (error) console.error(`Supabase error writing to ${table}:`, error);
+        }
+      } catch (err) {
+        console.error("Error in writeStore:", err);
+      }
+    }
+
+    // Upsert ciblé d'une seule ligne (évite d'écraser tout le tableau en mémoire
+    // et donc les modifications concurrentes faites par l'admin ou d'autres clients)
+    async function writeRow(table, row) {
+      try {
+        if (!supabase) return false;
+        const { error } = await supabase.from(table).upsert([row], { onConflict: "id" });
+        if (error) { console.error(`Supabase error writing row to ${table}:`, error); return false; }
+        return true;
+      } catch (err) {
+        console.error(`Error in writeRow(${table}):`, err);
+        return false;
+      }
+    }
+
+    // Upload d'un fichier vers Supabase Storage et récupération de l'URL publique
+    async function uploadFileToBucket(bucket, file) {
+      if (!supabase || !file) return "";
+      try {
+        const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+        const path = `${Date.now()}-${safeName}`;
+        const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, {
+          cacheControl: "3600",
+          upsert: false
+        });
+        if (uploadError) {
+          console.error(`Erreur upload vers le bucket ${bucket}:`, uploadError);
+          return "";
+        }
+        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+        return data?.publicUrl || "";
+      } catch (err) {
+        console.error(`Erreur uploadFileToBucket(${bucket}):`, err);
+        return "";
+      }
+    }
+
+    // Local storage helpers for cart (not synced to cloud)
+    function readLocalCart() {
+      try { const raw = localStorage.getItem(STORAGE.cart); return raw ? JSON.parse(raw) : []; } catch { return []; }
+    }
+    function writeLocalCart(cart) { localStorage.setItem(STORAGE.cart, JSON.stringify(cart)); }
+
+    // Initialisation
+    async function seedData() {
+      try {
+        // Load products directement depuis Supabase (aucune écriture côté client)
+        const productsData = await readStore("products", []);
+        state.products = productsData || [];
+
+        // Load settings
+        const settingsData = await readStore("settings", DEFAULT_SETTINGS);
+        state.settings = settingsData || DEFAULT_SETTINGS;
+
+        // Load announcements
+        const announcementsData = await readStore("announcements", DEFAULT_ANNOUNCEMENTS);
+        state.announcements = announcementsData || DEFAULT_ANNOUNCEMENTS;
+
+        // Load payments
+        const paymentsData = await readStore("payments", DEFAULT_PAYMENTS);
+        state.payments = paymentsData || DEFAULT_PAYMENTS;
+
+        // Load customers
+        const customersData = await readStore("customers", []);
+        state.customers = customersData || [];
+
+        // Load orders
+        const ordersData = await readStore("orders", []);
+        state.orders = ordersData || [];
+
+        // Load cart from localStorage (local only, not synced)
+        state.cart = readLocalCart();
+
+        // Apply dynamic settings
+        if (state.settings.brandColor) {
+          document.documentElement.style.setProperty("--brand", state.settings.brandColor);
+        }
+        $("#brandName").textContent = state.settings.storeName;
+        if ($('#brandLogo')) $('#brandLogo').src = state.settings.storeLogoUrl || DEFAULT_SETTINGS.storeLogoUrl;
+        
+        renderAnnouncement();
+        renderSupportBubble();
+        renderFilters();
+        renderProductsGrid();
+        renderCartPanel();
+
+        // Setup real-time listeners
+        setupRealtimeListeners();
+      } catch (err) {
+        console.error("Error in seedData:", err);
+      }
+    }
+
+    let realtimeInitialized = false;
+
+    function setupRealtimeListeners() {
+      if (!supabase || realtimeInitialized) return;
+      realtimeInitialized = true;
+
+      // Écoute des changements sur les produits (stock/prix en direct)
+      supabase
+        .channel('public:products:store')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
+          const productsData = await readStore("products", []);
+          state.products = productsData || [];
+          renderFilters();
+          renderProductsGrid();
+        })
+        .subscribe();
+
+      // Écoute des changements sur les paramètres (couleur de marque, logo, nom de boutique)
+      supabase
+        .channel('public:settings:store')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, async () => {
+          const settingsData = await readStore("settings", DEFAULT_SETTINGS);
+          state.settings = settingsData || DEFAULT_SETTINGS;
+          if (state.settings.brandColor) {
+            document.documentElement.style.setProperty("--brand", state.settings.brandColor);
+          }
+          $("#brandName").textContent = state.settings.storeName;
+          if ($('#brandLogo')) $('#brandLogo').src = state.settings.storeLogoUrl || DEFAULT_SETTINGS.storeLogoUrl;
+          renderSupportBubble();
+        })
+        .subscribe();
+
+      // Écoute des changements sur le bandeau d'annonce
+      supabase
+        .channel('public:announcements:store')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, async () => {
+          const announcementsData = await readStore("announcements", DEFAULT_ANNOUNCEMENTS);
+          state.announcements = announcementsData || DEFAULT_ANNOUNCEMENTS;
+          renderAnnouncement();
+        })
+        .subscribe();
+
+      // Écoute des changements sur les méthodes de paiement (numéros MonCash/NatCash/banque)
+      supabase
+        .channel('public:payments:store')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' }, async () => {
+          const paymentsData = await readStore("payments", DEFAULT_PAYMENTS);
+          state.payments = paymentsData || DEFAULT_PAYMENTS;
+        })
+        .subscribe();
+    }
+
+    function initializeApp() {
+      seedData();
+    }
+
+    function currentCustomer() {
+      const session = sessionStorage.getItem(STORAGE.session);
+      if (!session) return null;
+      return state.customers.find((c) => c.id === session) || null;
+    }
+
+    function renderProductsGrid() {
+      let products = state.products;
+
+      // Filtrages
+      if (state.filters.category) products = products.filter((p) => p.category === state.filters.category);
+      if (state.filters.vendor) products = products.filter((p) => p.vendorName === state.filters.vendor);
+      if (state.filters.search) {
+        const search = state.filters.search.toLowerCase();
+        products = products.filter((p) => p.name.toLowerCase().includes(search) || p.vendorName.toLowerCase().includes(search));
+      }
+
+      // Tri
+      switch (state.filters.sort) {
+        case "priceAsc": products = products.sort((a, b) => a.price - b.price); break;
+        case "priceDesc": products = products.sort((a, b) => b.price - a.price); break;
+        case "stockAsc": products = products.sort((a, b) => a.stock - b.stock); break;
+        case "nameAsc": products = products.sort((a, b) => a.name.localeCompare(b.name)); break;
+      }
+
+      $("#resultSummary").textContent = products.length > 0 ? `${products.length} produit(s) disponible(s)` : "Aucun résultat";
+
+      if (products.length === 0) {
+        $("#productsGrid").innerHTML = "";
+        $("#emptyProducts").hidden = false;
+        return;
+      }
+
+      $("#emptyProducts").hidden = true;
+      $("#productsGrid").innerHTML = products.map((p) => `
+        <div class="product-card">
+          <div class="product-image-wrap">
+            ${p.imageUrl ? `<img src="${safeText(p.imageUrl)}" alt="${safeText(p.name)}">` : `<div class="image-fallback"><i class="fa-regular fa-image"></i></div>`}
+          </div>
+          <div class="product-info">
+            <div class="product-vendor">
+              ${p.vendorLogo ? `<img src="${safeText(p.vendorLogo)}" alt="" class="vendor-logo">` : ""}
+              <span>${safeText(p.vendorName)}</span>
+            </div>
+            <h3 class="product-name">${safeText(p.name)}</h3>
+            <p class="product-desc">${safeText(p.description)}</p>
+            <div class="product-price-row">
+              <span class="product-price">${money(p.price)}</span>
+              <button class="add-to-cart" type="button" data-add-to-cart="${p.id}" ${p.stock <= 0 ? "disabled" : ""}><i class="fa-solid fa-plus"></i></button>
+            </div>
+            ${p.stock > 0 ? `<p class="product-stock">${p.stock} en stock</p>` : `<p class="product-stock low">Rupture de stock</p>`}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderCartPanel() {
+      const items = state.cart;
+      $("#cartBadge").textContent = items.length;
+
+      if (items.length === 0) {
+        $("#cartItems").innerHTML = `<p class="muted" style="padding:20px;text-align:center;">Votre panier est vide</p>`;
+        $("#checkoutBtn").disabled = true;
+        return;
+      }
+
+      $("#cartItems").innerHTML = items.map((item) => `
+        <div class="cart-item">
+          <img src="${safeText(item.imageUrl)}" alt="">
+          <div>
+            <div class="cart-item-name">${safeText(item.name)}</div>
+            <div class="cart-item-vendor">${safeText(item.vendorName)}</div>
+            <div class="cart-item-price">${money(item.price)}</div>
+            <div class="qty-row">
+              <div class="qty-control">
+                <button class="qty-btn" type="button" data-qty-minus="${item.id}">−</button>
+                <span>${item.quantity}</span>
+                <button class="qty-btn" type="button" data-qty-plus="${item.id}">+</button>
+              </div>
+              <button class="remove-btn" type="button" data-remove-item="${item.id}">Supprimer</button>
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      $("#cartTotal").textContent = money(total);
+      $("#checkoutBtn").disabled = false;
+    }
+
+    function renderAnnouncement() {
+      const banner = $("#announcementBanner");
+      if (!banner) return;
+      if (state.announcements.active && state.announcements.message) {
+        const textColor = state.announcements.textColor || DEFAULT_ANNOUNCEMENTS.textColor;
+        banner.innerHTML = `<span class="hero-banner__text" style="color: ${textColor};">${state.announcements.message}</span>`;
+        banner.hidden = false;
+      } else {
+        banner.hidden = true;
+      }
+    }
+
+    function renderSupportBubble() {
+      const bubble = $("#supportBubble");
+      if (!bubble) return;
+
+      const supportPhone = (state.settings.supportPhone || DEFAULT_SETTINGS.supportPhone || "+50941641700").replace(/\D/g, "");
+      const message = `Bonjour, je souhaite obtenir de l'aide pour ma commande chez ${state.settings.storeName || DEFAULT_SETTINGS.storeName}.`;
+      const whatsappUrl = `https://wa.me/${supportPhone}?text=${encodeURIComponent(message)}`;
+
+      bubble.innerHTML = `
+        <a href="${whatsappUrl}" target="_blank" rel="noopener noreferrer" class="support-link">
+          <span class="support-icon"><i class="fa-brands fa-whatsapp"></i></span>
+          <span class="support-content">
+            <strong>Besoin d'aide ?</strong>
+            <small>Contactez-nous sur WhatsApp</small>
+          </span>
+        </a>
+      `;
+    }
+
+    function renderAccountModal() {
+      const customer = currentCustomer();
+      if (!customer) {
+        $("#accountContent").innerHTML = `
+          <div class="auth-tabs">
+            <button class="auth-tab ${state.authMode === "signin" ? "active" : ""}" type="button" data-auth-type="signin">Se connecter</button>
+            <button class="auth-tab ${state.authMode === "signup" ? "active" : ""}" type="button" data-auth-type="signup">S'inscrire</button>
+          </div>
+          <form id="authForm" class="form-grid">
+            ${state.authMode === "signup" ? `<div class="field full"><label for="authName">Nom complet</label><input id="authName" type="text" required placeholder="Jean Pierre"></div><div class="field full"><label for="authUsername">Nom d'utilisateur</label><input id="authUsername" type="text" required placeholder="@jerry25"></div>` : ``}
+            <div class="field full"><label for="authCredential">${state.authMode === "signin" ? "Téléphone ou nom d'utilisateur" : "Téléphone"}</label><input id="authCredential" type="text" required placeholder="${state.authMode === "signin" ? "+509... ou @jerry25" : "+509..."}"></div>
+            <div class="field full"><label for="authPassword">Mot de passe</label><input id="authPassword" type="password" required placeholder="Mot de passe sécurisé"></div>
+            <div class="field full"><button class="btn-primary" type="submit"><i class="fa-solid fa-right-to-bracket"></i> ${state.authMode === "signin" ? "Connexion" : "Créer un compte"}</button></div>
+            <p id="authError" class="error-text"></p>
+          </form>
+        `;
+        setTimeout(() => {
+          $$('[data-auth-type]').forEach((btn) => {
+            btn.addEventListener("click", () => {
+              $$('[data-auth-type]').forEach((b) => b.classList.remove("active"));
+              btn.classList.add("active");
+              state.authMode = btn.dataset.authType;
+              renderAccountModal();
+            });
+          });
+
+          $("#authForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const credential = $("#authCredential").value.trim();
+            const password = $("#authPassword").value.trim();
+            const passwordHash = await sha256(password);
+
+            if (state.authMode === "signin") {
+              const customer = state.customers.find((c) => (c.phone === credential || c.username === credential) && c.passwordHash === passwordHash);
+              if (customer) {
+                sessionStorage.setItem(STORAGE.session, customer.id);
+                renderAccountModal();
+                openModal("#accountModal");
+              } else {
+                $("#authError").textContent = "Téléphone/username ou mot de passe incorrect.";
+              }
+            } else {
+              const username = $("#authUsername").value.trim().replace(/^@/, "");
+              const name = $("#authName").value.trim();
+              if (!name || !username) {
+                $("#authError").textContent = "Nom complet et nom d'utilisateur sont requis.";
+                return;
+              }
+              if (state.customers.find((c) => c.phone === credential)) {
+                $("#authError").textContent = "Ce téléphone est déjà inscrit.";
+                return;
+              }
+              if (state.customers.find((c) => c.username?.toLowerCase() === username.toLowerCase())) {
+                $("#authError").textContent = "Ce nom d'utilisateur est déjà pris.";
+                return;
+              }
+              const newCustomer = { id: uid("cust"), name, username, phone: credential, passwordHash, registeredAt: new Date().toISOString() };
+              state.customers.push(newCustomer);
+              await writeStore("customers", state.customers);
+              sessionStorage.setItem(STORAGE.session, newCustomer.id);
+              renderAccountModal();
+              openModal("#accountModal");
+            }
+          });
+        }, 0);
+      } else {
+        const orders = state.orders.filter((o) => o.customerId === customer.id);
+        $("#accountContent").innerHTML = `
+          <div style="margin-bottom:20px;">
+            <h3 style="margin-bottom:6px;">${safeText(customer.name)}</h3>
+            <p class="muted">${safeText(customer.username ? '@' + customer.username : customer.phone)} | Inscrit le ${new Date(customer.registeredAt).toLocaleDateString("fr-FR")}</p>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn-soft" type="button" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</button>
+          </div>
+          <h4 style="margin-top:20px;margin-bottom:10px;">Historique de vos commandes</h4>
+          <div>${orders.map((o) => {
+            let statusClass = "";
+            if (o.status === "En attente") statusClass = "pending";
+            else if (o.status === "Validée") statusClass = "validated";
+            else if (o.status === "En livraison") statusClass = "shipping";
+            else if (o.status === "Livrée") statusClass = "delivered";
+            return `
+            <div class="order-card">
+              <div><strong>Commande #${safeText(o.id)}</strong></div>
+              <div class="muted">${new Date(o.createdAt).toLocaleString("fr-FR")} - ${money(o.total)}</div>
+              <div><span class="status-pill ${statusClass}">${safeText(o.status)}</span></div>
+              <div style="font-size:12px;">${o.items.map((i) => `${safeText(i.name)} x${i.quantity}`).join(", ")}</div>
+            </div>
+          `}).join("") || `<p class="muted">Aucune commande pour le moment.</p>`}</div>
+        `;
+        setTimeout(() => {
+          $("#logoutBtn")?.addEventListener("click", () => {
+            sessionStorage.removeItem(STORAGE.session);
+            renderAccountModal();
+            openModal("#accountModal");
+          });
+        }, 0);
+      }
+    }
+
+    function renderFilters() {
+      const categories = [...new Set(state.products.map((p) => p.category))];
+      const vendors = [...new Set(state.products.map((p) => p.vendorName))];
+
+      $("#categoryFilters").innerHTML = categories.map((cat) => `
+        <button class="filter-btn ${state.filters.category === cat ? "active" : ""}" type="button" data-filter-category="${cat}">${safeText(cat)}</button>
+      `).join("");
+
+      $("#vendorFilters").innerHTML = vendors.map((vendor) => `
+        <button class="filter-btn ${state.filters.vendor === vendor ? "active" : ""}" type="button" data-filter-vendor="${vendor}">
+          ${state.products.find((p) => p.vendorName === vendor)?.vendorLogo ? `<img src="${state.products.find((p) => p.vendorName === vendor).vendorLogo}" style="width:16px;height:16px;border-radius:50%;margin-right:4px;">` : ""}
+          ${safeText(vendor)}
+        </button>
+      `).join("");
+    }
+
+    // EVENT LISTENERS
+    document.addEventListener("click", (event) => {
+      const target = event.target.closest("button");
+      if (!target) return;
+
+      if (target.matches("[data-add-to-cart]")) {
+        const product = state.products.find((p) => p.id === target.dataset.addToCart);
+        if (!product) return;
+        const existing = state.cart.find((item) => item.id === product.id);
+        if (existing) {
+          if (existing.quantity < Number(product.stock)) {
+            existing.quantity++;
+          } else {
+            alert(`Stock limité à ${product.stock} article(s)`);
+          }
+        } else {
+          state.cart.push({ ...product, quantity: 1 });
+        }
+        writeLocalCart(state.cart);
+        renderCartPanel();
+      }
+
+      if (target.matches("[data-qty-plus]")) {
+        const item = state.cart.find((i) => i.id === target.dataset.qtyPlus);
+        const product = state.products.find((p) => p.id === item?.id);
+        if (item && product && item.quantity < Number(product.stock)) {
+          item.quantity++;
+        } else if (product) {
+          alert(`Stock limité à ${product.stock} article(s)`);
+        }
+        writeLocalCart(state.cart);
+        renderCartPanel();
+      }
+
+      if (target.matches("[data-qty-minus]")) {
+        const item = state.cart.find((i) => i.id === target.dataset.qtyMinus);
+        if (item && item.quantity > 1) item.quantity--;
+        writeLocalCart(state.cart);
+        renderCartPanel();
+      }
+
+      if (target.matches("[data-remove-item]")) {
+        state.cart = state.cart.filter((i) => i.id !== target.dataset.removeItem);
+        writeLocalCart(state.cart);
+        renderCartPanel();
+      }
+
+      if (target.matches("[data-copy-pay-number]")) {
+        const value = target.dataset.copyPayNumber;
+        if (value) copyToClipboard(value);
+      }
+
+      if (target.matches("[data-filter-category]")) {
+        state.filters.category = target.dataset.filterCategory;
+        renderFilters();
+        renderProductsGrid();
+      }
+
+      if (target.matches("[data-filter-vendor]")) {
+        state.filters.vendor = target.dataset.filterVendor;
+        renderFilters();
+        renderProductsGrid();
+      }
+
+      if (target.matches("#resetFilters")) {
+        state.filters = { category: "", vendor: "", search: "", sort: "featured" };
+        renderFilters();
+        renderProductsGrid();
+        $("#searchInput").value = "";
+        $("#sortSelect").value = "featured";
+      }
+
+      if (target.matches("#cartBtn")) {
+        $("#cartOverlay").classList.add("open");
+        $("#cartPanel").classList.add("open");
+        $("#supportBubble").style.display = "none";
+      }
+
+      if (target.matches("#closeCart")) {
+        $("#cartOverlay").classList.remove("open");
+        $("#cartPanel").classList.remove("open");
+        $("#supportBubble").style.display = "block";
+      }
+
+      if (target.matches("#accountBtn") || target.matches("[data-open-account]")) {
+        renderAccountModal();
+        openModal("#accountModal");
+      }
+
+      if (target.matches("#checkoutBtn")) {
+        const customer = currentCustomer();
+        if (!customer) {
+          renderAccountModal();
+          openModal("#accountModal");
+          return;
+        }
+        const total = state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        $("#checkoutTotal").textContent = money(total);
+        $("#deliveryPhone").value = customer.phone;
+        openModal("#checkoutModal");
+      }
+
+      if (target.matches("[data-close-modal]")) closeModal();
+      if (target.matches("[data-scroll-products]")) {
+        document.getElementById("productsSection").scrollIntoView({ behavior: "smooth" });
+      }
+    });
+
+    const copyToClipboard = async (text) => {
+      try {
+        await navigator.clipboard.writeText(text);
+        alert("Copié dans le presse-papiers !");
+      } catch (err) {
+        prompt("Copier manuellement ce texte :", text);
+      }
+    };
+
+    // HANDLE PAYMENT METHOD CHANGE
+    $("#paymentMethod").addEventListener("change", (e) => {
+      const method = e.target.value;
+      const detailsBox = $("#paymentDetailsBox");
+      const proofBox = $("#proofUploadBox");
+
+      if (method === "Paiement à la livraison") {
+        detailsBox.hidden = true;
+        proofBox.hidden = true;
+      } else if (method === "MonCash" || method === "NatCash") {
+        const data = state.payments[method.toLowerCase()];
+        let html = "";
+        if (data.numbers && data.numbers.length > 0) {
+          const lines = data.numbers.map(n => {
+            const value = typeof n === 'string' ? n : n.number;
+            const label = typeof n === 'string' ? value : `${n.name ? `<strong>${n.name}</strong> - ` : ''}${n.number}`;
+            return `<div class="payment-detail-row"><span>${label}</span><button type="button" data-copy-pay-number="${safeText(value)}" class="btn-soft" title="Copier le numéro"><i class="fa-regular fa-copy"></i></button></div>`;
+          });
+          html = `<div class="payment-detail-item"><strong>${method}</strong>${lines.join('')}<div style="margin-top:10px;">Compte: ${safeText(data.account)}</div></div>`;
+        } else {
+          html = `<div class="payment-detail-item">Aucun numéro ${method} configuré.</div>`;
+        }
+        $("#paymentDetails").innerHTML = html;
+        detailsBox.hidden = false;
+        proofBox.hidden = false;
+      } else if (method === "Compte bancaire") {
+        const bank = state.payments.bank;
+        const html = `<div class="payment-detail-item"><strong>${bank.bankName}</strong><br>Titulaire: ${bank.accountHolder}<br>Compte: ${bank.accountNumber}</div>`;
+        $("#paymentDetails").innerHTML = html;
+        detailsBox.hidden = false;
+        proofBox.hidden = false;
+      }
+    });
+
+    // HANDLE CHECKOUT SUBMIT
+    $("#checkoutForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const customer = currentCustomer();
+      if (!customer) return;
+
+      const submitBtn = $("#checkoutForm button[type='submit']");
+      const deliveryAddress = $("#deliveryAddress").value.trim();
+      const deliveryPhone = $("#deliveryPhone").value.trim();
+      const notes = $("#orderNotes").value.trim();
+      const paymentMethod = $("#paymentMethod").value;
+      let proofUrl = "";
+
+      // Validate stock before creating order
+      const over = state.cart.find((item) => {
+        const p = state.products.find((pp) => pp.id === item.id);
+        return !p || item.quantity > Number(p.stock);
+      });
+      if (over) {
+        alert(`Quantité demandée pour "${over.name}" dépasse le stock disponible (${state.products.find(p => p.id === over.id)?.stock || 0}). La commande ne peut pas être passée.`);
+        return;
+      }
+
+      // Upload de la preuve de paiement vers le bucket Supabase Storage "payment-proofs"
+      const proofInput = document.getElementById("paymentProof");
+      if (paymentMethod !== "Paiement à la livraison" && proofInput.files.length > 0) {
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Envoi de la preuve..."; }
+        proofUrl = await uploadFileToBucket("payment-proofs", proofInput.files[0]);
+        if (!proofUrl) {
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Valider la commande'; }
+          $("#checkoutError").textContent = "Échec de l'envoi de la preuve de paiement. Veuillez réessayer.";
+          return;
+        }
+      }
+
+      const order = {
+        id: uid("order"),
+        customerId: customer.id,
+        customerName: customer.name,
+        customerUsername: customer.username || "",
+        customerPhone: customer.phone,
+        address: deliveryAddress,
+        receptionPhone: deliveryPhone,
+        notes,
+        paymentMethod,
+        proofUrl,
+        items: state.cart.map((item) => ({ id: item.id, vendorId: item.vendorId || "", name: item.name, vendorName: item.vendorName, quantity: item.quantity, price: item.price })),
+        vendorId: state.cart[0]?.vendorId || "",
+        vendorName: state.cart[0]?.vendorName || "",
+        total: state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
+        status: "En attente",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      const updatedProducts = [];
+      state.cart.forEach((item) => {
+        const product = state.products.find((p) => p.id === item.id);
+        if (product) {
+          product.stock = Math.max(0, Number(product.stock) - Number(item.quantity));
+          updatedProducts.push(product);
+        }
+      });
+      for (const product of updatedProducts) {
+        await writeRow("products", product);
+      }
+
+      state.orders.push(order);
+      await writeRow("orders", order);
+      state.cart = [];
+      writeLocalCart(state.cart);
+
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Valider la commande'; }
+      alert(`Commande ${order.id} enregistrée. Votre preuve de paiement a bien été reçue et la commande sera vérifiée.`);
+      closeModal();
+      renderCartPanel();
+      renderProductsGrid();
+      $("#checkoutForm").reset();
+    });
+
+    // SEARCH INPUT
+    $("#searchInput").addEventListener("input", (e) => {
+      state.filters.search = e.target.value;
+      renderProductsGrid();
+    });
+
+    // SORT SELECT
+    $("#sortSelect").addEventListener("change", (e) => {
+      state.filters.sort = e.target.value;
+      renderProductsGrid();
+    });
+
+    function openModal(id) {
+      $("#modalOverlay").classList.add("open");
+      $(id).classList.add("open");
+      $("#supportBubble").style.display = "none";
+    }
+
+    function closeModal() {
+      $("#modalOverlay").classList.remove("open");
+      $$(".modal").forEach((m) => m.classList.remove("open"));
+      $("#supportBubble").style.display = "block";
+    }
+
+    window.addEventListener("storage", () => {
+      // Reload data when localStorage changes (cart updates from other tabs)
+      state.cart = readLocalCart();
+      renderCartPanel();
+    });
+
+    // Wait for Supabase to be initialized before starting app
+  </script>
+</body>
+</html>
