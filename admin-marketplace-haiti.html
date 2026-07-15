@@ -193,6 +193,7 @@
             <input id="productId" type="hidden">
             <div class="field"><label for="productName">Nom du produit</label><input id="productName" required type="text"></div>
             <div class="field"><label for="productPrice">Prix de base</label><input id="productPrice" required type="number" min="0" step="1"></div>
+            <div class="field"><label for="productCompareAtPrice">Prix barré (promo, facultatif)</label><input id="productCompareAtPrice" type="number" min="0" step="1" placeholder="Laisser vide si pas de promo"></div>
             <div class="field"><label for="productStock">Stock</label><input id="productStock" required type="number" min="0" step="1"></div>
             <div class="field"><label>Catégorie</label><div id="productCategoryWrap"></div></div>
             <div class="field full"><label for="productVendor">Sélectionner l'entreprise vendeuse</label><select id="productVendor" required></select></div>
@@ -1264,6 +1265,7 @@
         imageUrl,
         imageGallery: gallery,
         price: Number($("#productPrice").value),
+        compareAtPrice: $("#productCompareAtPrice").value ? Number($("#productCompareAtPrice").value) : null,
         stock: Number($("#productStock").value),
         category: $("#productCategoryWrap select")?.value || "",
         vendorId: vendor.id || "",
@@ -1422,6 +1424,7 @@
         $("#productId").value = product.id;
         $("#productName").value = product.name;
         $("#productPrice").value = product.price;
+        $("#productCompareAtPrice").value = product.compareAtPrice || "";
         $("#productStock").value = product.stock;
         $("#productImage").value = product.imageUrl;
         $("#productDescription").value = product.description;
