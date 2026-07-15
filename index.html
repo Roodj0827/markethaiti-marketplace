@@ -133,20 +133,22 @@
     .sort-select { height: 40px; border: 1.5px solid var(--border); border-radius: 10px; padding: 0 12px; background: var(--surface2); color: var(--text); outline: none; }
 
     .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
-    .product-card { background: var(--surface2); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; transition: 0.25s ease; position: relative; }
+    .product-card { background: var(--surface2); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; transition: 0.25s ease; position: relative; display: flex; flex-direction: column; height: 100%; }
     .product-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: transparent; }
     .product-image-wrap { aspect-ratio: 4 / 3.4; background: var(--surface3); position: relative; overflow: hidden; }
     .product-image-wrap img { width: 100%; height: 100%; object-fit: cover; }
     .image-fallback { width: 100%; height: 100%; display: grid; place-items: center; color: var(--text3); font-size: 48px; }
-    .product-info { padding: 14px 15px 15px; }
+    .product-info { padding: 14px 15px 15px; display: flex; flex-direction: column; flex: 1; }
+    .product-top { flex: 1; }
     .product-vendor { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text3); font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; margin-bottom: 6px; }
     .vendor-logo { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; background: var(--surface); border: 1px solid var(--border); }
-    .product-name { font-size: 15.5px; font-weight: 800; margin-bottom: 4px; line-height: 1.25; }
-    .product-rating { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--text3); font-weight: 700; margin-bottom: 6px; }
+    .product-name { font-size: 15.5px; font-weight: 800; margin-bottom: 4px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .product-rating { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--text3); font-weight: 700; margin-bottom: 6px; min-height: 15px; }
     .product-rating i { color: var(--sun); font-size: 11px; }
     .product-rating .no-rating { color: var(--text3); font-weight: 600; }
-    .product-desc { color: var(--text2); font-size: 13px; min-height: 38px; margin-bottom: 10px; }
-    .product-price-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .product-price-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+    .product-compare-price { font-size: 12px; color: var(--text3); text-decoration: line-through; font-weight: 600; margin-right: 6px; }
+    .promo-badge { position: absolute; top: 10px; left: 10px; background: var(--danger); color: #fff; font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 999px; z-index: 2; }
     .product-price { color: var(--brand); font-family: "Plus Jakarta Sans"; font-size: 18px; font-weight: 800; }
     .add-to-cart { width: 38px; height: 38px; border-radius: 50%; background: var(--brand); color: white; border: 0; display: grid; place-items: center; transition: 0.2s ease; flex: 0 0 auto; }
     .add-to-cart:hover { background: var(--brand-dark); transform: scale(1.08); }
@@ -341,7 +343,6 @@
       .products-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
       .product-info { padding: 11px 12px 12px; }
       .product-name { font-size: 13.5px; margin-bottom: 4px; }
-      .product-desc { font-size: 12px; min-height: 0; -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 8px; }
       .product-price { font-size: 15.5px; }
       .add-to-cart { width: 38px; height: 38px; }
       .product-stock { font-size: 11px; }
@@ -1052,26 +1053,34 @@
       }
 
       $("#emptyProducts").hidden = true;
+      const LOW_STOCK_THRESHOLD = 5;
       $("#productsGrid").innerHTML = products.map((p) => {
         const hasVariants = (Array.isArray(p.priceByVolume) && p.priceByVolume.length > 0) || (Array.isArray(p.colorOptions) && p.colorOptions.length > 0);
+        const hasPromo = p.compareAtPrice && Number(p.compareAtPrice) > Number(p.price);
+        const discountPct = hasPromo ? Math.round((1 - Number(p.price) / Number(p.compareAtPrice)) * 100) : 0;
+        let stockLine = "";
+        if (p.stock <= 0) stockLine = `<p class="product-stock low">Rupture de stock</p>`;
+        else if (p.stock <= LOW_STOCK_THRESHOLD) stockLine = `<p class="product-stock low">Il n'en reste que ${p.stock} !</p>`;
         return `
         <div class="product-card">
           <div class="product-image-wrap" data-open-product="${p.id}" role="button" tabindex="0">
+            ${hasPromo ? `<span class="promo-badge">-${discountPct}%</span>` : ""}
             ${p.imageUrl ? `<img src="${safeText(p.imageUrl)}" alt="${safeText(p.name)}">` : `<div class="image-fallback"><i class="fa-regular fa-image"></i></div>`}
           </div>
           <div class="product-info">
-            <div class="product-vendor">
-              ${p.vendorLogo ? `<img src="${safeText(p.vendorLogo)}" alt="" class="vendor-logo">` : ""}
-              <span>${safeText(p.vendorName)}</span>
+            <div class="product-top">
+              <div class="product-vendor">
+                ${p.vendorLogo ? `<img src="${safeText(p.vendorLogo)}" alt="" class="vendor-logo">` : ""}
+                <span>${safeText(p.vendorName)}</span>
+              </div>
+              <h3 class="product-name" data-open-product="${p.id}" role="button" tabindex="0">${safeText(p.name)}</h3>
+              <div class="product-rating">${avgRating(p.id).count ? `${starsHtml(avgRating(p.id).avg)} <span>(${avgRating(p.id).count})</span>` : `<span class="no-rating">Pas encore d'avis</span>`}</div>
             </div>
-            <h3 class="product-name" data-open-product="${p.id}" role="button" tabindex="0">${safeText(p.name)}</h3>
-            <div class="product-rating">${avgRating(p.id).count ? `${starsHtml(avgRating(p.id).avg)} <span>(${avgRating(p.id).count})</span>` : `<span class="no-rating">Pas encore d'avis</span>`}</div>
-            <p class="product-desc">${safeText(p.description)}</p>
             <div class="product-price-row">
-              <span class="product-price">${money(p.price)}</span>
+              <span>${hasPromo ? `<span class="product-compare-price">${money(p.compareAtPrice)}</span>` : ""}<span class="product-price">${money(p.price)}</span></span>
               <button class="add-to-cart" type="button" ${hasVariants ? `data-open-product="${p.id}"` : `data-add-to-cart="${p.id}"`} ${p.stock <= 0 ? "disabled" : ""} title="${hasVariants ? 'Choisir une déclinaison' : 'Ajouter au panier'}"><i class="fa-solid ${hasVariants ? 'fa-eye' : 'fa-plus'}"></i></button>
             </div>
-            ${p.stock > 0 ? `<p class="product-stock">${p.stock} en stock</p>` : `<p class="product-stock low">Rupture de stock</p>`}
+            ${stockLine}
           </div>
         </div>
       `;
@@ -1421,7 +1430,7 @@
             <div class="pd-vendor">${safeText(p.vendorName)}</div>
             <h2 class="pd-name">${safeText(p.name)}</h2>
             <div class="pd-rating-summary">${ratingInfo.count ? `${starsHtml(ratingInfo.avg)} <span>${ratingInfo.avg.toFixed(1)} · ${ratingInfo.count} avis</span>` : `<span>Pas encore d'avis</span>`}</div>
-            <div class="pd-price" id="pdPrice">${money(effectivePrice)}</div>
+            <div class="pd-price" id="pdPrice">${(p.compareAtPrice && Number(p.compareAtPrice) > Number(p.price) && effectivePrice === Number(p.price)) ? `<span class="product-compare-price" style="font-size:15px;">${money(p.compareAtPrice)}</span> ` : ""}${money(effectivePrice)}</div>
             <p class="pd-desc">${safeText(p.description)}</p>
             ${specsHtml}
             ${colorHtml}
