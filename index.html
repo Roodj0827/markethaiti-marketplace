@@ -1846,6 +1846,7 @@
       const method = $("#paymentMethod").value;
       const detailsBox = $("#paymentDetailsBox");
       const proofBox = $("#proofUploadBox");
+      const proofInput = $("#paymentProof");
 
       if (method === "MonCash") {
         // Paiement automatisé via ZAFEW : plus besoin de numéro manuel ni de
@@ -1853,6 +1854,7 @@
         $("#paymentDetails").innerHTML = `<div class="payment-detail-item"><i class="fa-solid fa-lock"></i> Vous allez être redirigé vers la page de paiement MonCash sécurisée pour finaliser votre achat.</div>`;
         detailsBox.hidden = false;
         proofBox.hidden = true;
+        if (proofInput) { proofInput.required = false; proofInput.value = ""; }
       } else if (method === "NatCash") {
         const data = state.payments[method.toLowerCase()];
         let html = "";
@@ -1869,10 +1871,12 @@
         $("#paymentDetails").innerHTML = html;
         detailsBox.hidden = false;
         proofBox.hidden = false;
+        if (proofInput) proofInput.required = true;
       } else if (method === "Compte bancaire") {
         const bank = state.payments.bank;
         const html = `<div class="payment-detail-item"><strong>${bank.bankName}</strong><br>Titulaire: ${bank.accountHolder}<br>Compte: ${bank.accountNumber}</div>`;
         $("#paymentDetails").innerHTML = html;
+        if (proofInput) proofInput.required = true;
         detailsBox.hidden = false;
         proofBox.hidden = false;
       }
