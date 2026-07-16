@@ -1967,7 +1967,11 @@
         try {
           const res = await fetch(MONCASH_PAY_CREATE_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+              "apikey": SUPABASE_ANON_KEY,
+            },
             body: JSON.stringify({ orderId: order.id }),
           });
           const data = await res.json();
