@@ -72,6 +72,11 @@
     .status-pill.validated { background:#dbeafe; color:#1e40af; }
     .status-pill.shipping { background:#fce7f3; color:#be185d; }
     .status-pill.delivered { background:#dcfce7; color:#166534; }
+    .status-pill.cancelled { background:#f3f4f6; color:#6b7280; }
+    .status-pill.payment-pending { background:#fef3c7; color:#b45309; }
+    .status-pill.payment-succeeded { background:#dcfce7; color:#166534; }
+    .status-pill.payment-failed { background:#fee2e2; color:#b91c1c; }
+    .status-pill.payment-cancelled { background:#f3f4f6; color:#6b7280; }
     .modal-body img.proof-img { max-width: 100%; height: auto; border-radius: 10px; margin: 10px 0; }
     .view { display:none; } .view.active { display:block; }
     .notice { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; border-radius:10px; padding:12px; margin-bottom:14px; font-weight:700; }
@@ -835,7 +840,19 @@
         if (status === "Validée") return "validated";
         if (status === "En livraison") return "shipping";
         if (status === "Livrée") return "delivered";
+        if (status === "Annulée") return "cancelled";
         return "";
+      };
+      const paymentBadge = (o) => {
+        if (o.paymentMethod !== "MonCash") return "";
+        const map = {
+          pending: ["Paiement en attente", "payment-pending"],
+          succeeded: ["Payé", "payment-succeeded"],
+          failed: ["Paiement échoué", "payment-failed"],
+          cancelled: ["Paiement annulé", "payment-cancelled"],
+        };
+        const [label, cls] = map[o.paymentStatus] || map.pending;
+        return `<br><span class="status-pill ${cls}" style="margin-top:4px;">${label}</span>`;
       };
       return `<div class="table-wrap"><table>
         <thead><tr><th>Commande</th><th>Client</th><th>Total</th><th>Statut</th><th>Preuve</th><th>Date</th>${compact ? "" : "<th>Actions</th>"}</tr></thead>
@@ -844,7 +861,7 @@
             <td><strong>${safeText(o.id)}</strong><br><span class="muted">${o.items.map((i) => `${safeText(i.name)} x${i.quantity}`).join(", ")}</span></td>
             <td>${safeText(o.customerName)}<br><span class="muted">${safeText(o.customerPhone)}</span></td>
             <td>${money(o.total)}</td>
-            <td>${compact ? `<span class="status-pill ${getStatusClass(o.status)}">${safeText(o.status)}</span>` : `<select data-order-status="${o.id}"><option ${o.status === "En attente" ? "selected" : ""}>En attente</option><option ${o.status === "Validée" ? "selected" : ""}>Validée</option><option ${o.status === "En livraison" ? "selected" : ""}>En livraison</option><option ${o.status === "Livrée" ? "selected" : ""}>Livrée</option></select>`}</td>
+            <td>${compact ? `<span class="status-pill ${getStatusClass(o.status)}">${safeText(o.status)}</span>` : `<select data-order-status="${o.id}"><option ${o.status === "En attente" ? "selected" : ""}>En attente</option><option ${o.status === "Validée" ? "selected" : ""}>Validée</option><option ${o.status === "En livraison" ? "selected" : ""}>En livraison</option><option ${o.status === "Livrée" ? "selected" : ""}>Livrée</option><option ${o.status === "Annulée" ? "selected" : ""}>Annulée</option></select>`}${paymentBadge(o)}</td>
             <td>${o.proofUrl ? `<span class="badge"><i class="fa-solid fa-check"></i> OUI</span>` : "<span class='muted'>-</span>"}</td>
             <td>${new Date(o.createdAt).toLocaleString("fr-FR")}</td>
             ${compact ? "" : `<td><button class="btn-soft" type="button" data-view-proof="${o.id}" ${o.proofUrl ? "" : "disabled"}><i class="fa-solid fa-image"></i></button> <button class="btn-soft" type="button" data-validate-order="${o.id}" ${o.status === "En attente" && o.proofUrl ? "" : "disabled"}><i class="fa-solid fa-circle-check"></i> Valider</button> <button class="btn-soft" type="button" data-whatsapp="${o.id}"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button> <button class="btn-danger" type="button" data-delete-order="${o.id}"><i class="fa-solid fa-trash"></i></button></td>`}
