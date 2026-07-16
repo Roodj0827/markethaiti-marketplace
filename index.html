@@ -199,6 +199,11 @@
     .status-pill.validated { background:#E3F3EC; color:#0A4B3B; }
     .status-pill.shipping { background:#FDEBE4; color:#B23A1C; }
     .status-pill.delivered { background:#dcfce7; color:#166534; }
+    .status-pill.cancelled { background:#f3f4f6; color:#6b7280; }
+    .status-pill.payment-pending { background:#FFF3D6; color:#96650B; }
+    .status-pill.payment-succeeded { background:#dcfce7; color:#166534; }
+    .status-pill.payment-failed { background:#fbe4de; color:#C5341F; }
+    .status-pill.payment-cancelled { background:#f3f4f6; color:#6b7280; }
     .error-text { color: var(--danger); font-size: 13px; font-weight: 700; margin-top: 10px; min-height: 18px; }
     .payment-details-box { background: var(--brand-light); border: 1px solid var(--brand); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
     .payment-details-box strong { color: var(--brand); display: block; margin-bottom: 8px; }
@@ -866,6 +871,27 @@
       }
     }
 
+    // Annule automatiquement les commandes MonCash restées "En attente" sans
+    // paiement confirmé après 30 minutes (panier abandonné / paiement jamais
+    // terminé) — évite des commandes fantômes visibles indéfiniment dans
+    // l'admin et le compte client.
+    async function cleanupStaleMoncashOrders() {
+      const THRESHOLD_MS = 30 * 60 * 1000;
+      const now = Date.now();
+      const stale = state.orders.filter((o) =>
+        o.paymentMethod === "MonCash" &&
+        o.status === "En attente" &&
+        o.paymentStatus !== "succeeded" &&
+        (now - new Date(o.createdAt).getTime()) > THRESHOLD_MS
+      );
+      for (const o of stale) {
+        o.status = "Annulée";
+        o.paymentStatus = o.paymentStatus === "failed" ? "failed" : "cancelled";
+        await writeRow("orders", { id: o.id, status: "Annulée", paymentStatus: o.paymentStatus });
+      }
+      if (stale.length) renderAccountModal();
+    }
+
     // Upload d'un fichier vers Supabase Storage et récupération de l'URL publique
     async function uploadFileToBucket(bucket, file) {
       if (!supabase || !file) return "";
@@ -922,6 +948,7 @@
         // Load orders
         const ordersData = await readStore("orders", []);
         state.orders = ordersData || [];
+        cleanupStaleMoncashOrders(); // en tâche de fond, ne bloque pas l'affichage
 
         // Load avis clients (table facultative — si elle n'existe pas encore
         // côté Supabase, readStore capture l'erreur et renvoie [] sans bloquer
@@ -1361,11 +1388,14 @@
             else if (o.status === "Validée") statusClass = "validated";
             else if (o.status === "En livraison") statusClass = "shipping";
             else if (o.status === "Livrée") statusClass = "delivered";
+            else if (o.status === "Annulée") statusClass = "cancelled";
+            const paymentBadges = { pending: ["Paiement en attente", "payment-pending"], succeeded: ["Payé", "payment-succeeded"], failed: ["Paiement échoué", "payment-failed"], cancelled: ["Paiement annulé", "payment-cancelled"] };
+            const [payLabel, payClass] = paymentBadges[o.paymentStatus] || paymentBadges.pending;
             return `
             <div class="order-card">
               <div><strong>Commande #${safeText(o.id)}</strong></div>
               <div class="muted">${new Date(o.createdAt).toLocaleString("fr-FR")} - ${money(o.total)}</div>
-              <div><span class="status-pill ${statusClass}">${safeText(o.status)}</span></div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;"><span class="status-pill ${statusClass}">${safeText(o.status)}</span>${o.paymentMethod === "MonCash" ? `<span class="status-pill ${payClass}">${payLabel}</span>` : ""}</div>
               <div style="font-size:12px;">${o.items.map((i) => `${safeText(i.name)}${i.variantLabel ? ' (' + safeText(i.variantLabel) + ')' : ''} x${i.quantity}`).join(", ")}</div>
             </div>
           `}).join("") || `<p class="muted">Aucune commande pour le moment.</p>`}</div>
