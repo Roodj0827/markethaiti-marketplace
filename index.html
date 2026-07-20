@@ -887,9 +887,17 @@
       for (const o of stale) {
         o.status = "Annulée";
         o.paymentStatus = o.paymentStatus === "failed" ? "failed" : "cancelled";
+        // Restaure le stock des articles de cette commande non payée
+        for (const item of o.items || []) {
+          const product = state.products.find((p) => p.id === item.id);
+          if (product) {
+            product.stock = Number(product.stock) + Number(item.quantity);
+            await writeRow("products", product);
+          }
+        }
         await writeRow("orders", { id: o.id, status: "Annulée", paymentStatus: o.paymentStatus });
       }
-      if (stale.length) renderAccountModal();
+      if (stale.length) { renderAccountModal(); renderProductsGrid(); }
     }
 
     // Upload d'un fichier vers Supabase Storage et récupération de l'URL publique
