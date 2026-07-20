@@ -1011,7 +1011,7 @@
       window.history.replaceState({}, "", window.location.pathname);
 
       if (paiement === "annule") {
-        alert(`Paiement annulé pour la commande ${commande}. Vous pouvez réessayer depuis votre panier.`);
+        alert(`Paiement annulé pour la commande ${commande}. Le panier a été vidé au moment du paiement : ajoutez à nouveau vos articles pour réessayer.`);
         return;
       }
 
