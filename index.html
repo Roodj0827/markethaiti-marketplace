@@ -754,6 +754,44 @@
       "Événements & Fêtes", "Autre"
     ];
 
+    // Familles de produits détectées par mots-clés (catégorie + nom + description), pour affiner
+    // les "produits similaires" au-delà du simple champ catégorie (qui peut être trop large/mal choisi).
+    const FAMILY_KEYWORDS = {
+      electronics: ["électronique", "electronique", "téléphone", "telephone", "smartphone", "informatique", "ordinateur", "tablette", "laptop", "tech", "gadget", "audio", "casque", "écouteur", "ecouteur", "gaming", "console", "jeu vidéo", "jeu video", "smartwatch"],
+      electromenager: ["électroménager", "electromenager", "frigo", "réfrigérateur", "refrigerateur", "climatiseur", "ventilateur", "cuisinière", "cuisiniere", "micro-onde", "micro onde", "machine à laver", "machine a laver"],
+      fashion: ["mode", "vêtement", "vetement", "vêtements", "vetements", "chaussure", "chaussures", "sac à main", "sac a main", "robe", "chemise", "pantalon", "jupe", "veste"],
+      jewelry: ["bijou", "bijoux", "montre", "collier", "bracelet", "boucle d'oreille", "boucles d'oreille", "bague"],
+      fragrance: ["parfum", "spray", "fragrance", "cologne", "eau de toilette", "eau de parfum", "déodorant", "deodorant"],
+      beauty: ["cosmétique", "cosmetique", "beauté", "beaute", "maquillage", "crème", "creme", "soin visage", "soin de la peau"],
+      home: ["maison", "décoration", "decoration", "meuble", "meubles", "cuisine", "arts de la table", "déco", "deco"],
+      baby: ["bébé", "bebe", "puériculture", "puericulture", "poussette", "couche"],
+      toys: ["jouet", "jouets", "jeu de société", "jeu de societe"],
+      sport: ["sport", "plein air", "fitness", "musculation", "vélo", "velo"],
+      auto: ["auto", "moto", "voiture", "pneu"],
+      tools: ["outillage", "bricolage", "outil", "outils"],
+      school: ["papeterie", "fourniture scolaire", "fournitures scolaires", "scolaire", "cahier", "stylo"],
+      food: ["épicerie", "epicerie", "alimentation", "nourriture", "boisson", "food"],
+      pets: ["animalerie", "animal de compagnie", "chien", "chat"],
+      books: ["livre", "livres", "média", "media"],
+      events: ["événement", "evenement", "fête", "fete"]
+    };
+    function getProductFamilies(product) {
+      const text = `${product?.category || ""} ${product?.name || ""} ${product?.description || ""}`.toLowerCase();
+      return Object.keys(FAMILY_KEYWORDS).filter((fam) => FAMILY_KEYWORDS[fam].some((k) => text.includes(k)));
+    }
+
+    // Masque le nom d'un client dans les avis publics : 2 premières lettres de chaque
+    // partie du nom, suivies d'étoiles (ex: "Jhon Wick" -> "Jh** Wi**").
+    function maskCustomerName(fullName) {
+      const parts = (fullName || "").trim().split(/\s+/).filter(Boolean);
+      if (!parts.length) return "Client MarketHaiti";
+      return parts.map((part) => {
+        const visible = part.slice(0, 2);
+        const hiddenLength = Math.min(Math.max(part.length - 2, 2), 4);
+        return visible + "*".repeat(hiddenLength);
+      }).join(" ");
+    }
+
     const DEFAULT_PAYMENTS = {
       moncash: { numbers: [], account: "" },
       natcash: { numbers: [], account: "" },
@@ -1609,9 +1647,20 @@
       const reviews = productReviews(p.id).slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       const customer = currentCustomer();
 
-      const similar = state.products
-        .filter((pp) => pp.isActive !== false && pp.category === p.category && pp.id !== p.id)
-        .slice(0, 4);
+      // Produits similaires : d'abord même catégorie, puis affiné par "famille" détectée
+      // par mots-clés (ex: un spray ne doit suggérer que parfums/sprays, jamais des bijoux),
+      // même si la catégorie du site a été choisie de façon trop large.
+      const otherActive = state.products.filter((pp) => pp.isActive !== false && pp.id !== p.id);
+      const pFamilies = getProductFamilies(p);
+      let similar = otherActive.filter((pp) => pp.category === p.category);
+      if (pFamilies.length) {
+        similar = similar.filter((pp) => getProductFamilies(pp).some((f) => pFamilies.includes(f)));
+        if (similar.length < 4) {
+          const extra = otherActive.filter((pp) => !similar.includes(pp) && getProductFamilies(pp).some((f) => pFamilies.includes(f)));
+          similar = similar.concat(extra);
+        }
+      }
+      similar = similar.slice(0, 4);
 
       $("#productDetailContent").innerHTML = `
         <div class="pd-layout">
@@ -1638,7 +1687,7 @@
           ${reviews.length ? reviews.map((r) => `
             <div class="review-card">
               <div class="review-card-head">
-                <span class="review-author">${safeText(r.customerName)}</span>
+                <span class="review-author">${safeText(maskCustomerName(r.customerName))}</span>
                 <span class="review-date">${new Date(r.createdAt).toLocaleDateString("fr-FR")}</span>
               </div>
               <div class="review-stars">${starsHtml(r.rating)}</div>
