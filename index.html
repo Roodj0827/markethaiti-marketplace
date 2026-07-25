@@ -743,16 +743,42 @@
       textColor: "#ffffff"
     };
 
-    // Catégories proposées dans le formulaire d'inscription vendeur (type Shein/Amazon).
-    const VENDOR_CATEGORIES = [
-      "Électronique & Tech", "Téléphonie & Accessoires", "Informatique & Accessoires", "Audio & Casques",
-      "Gaming & Consoles", "Électroménagers", "Mode Femme", "Mode Homme", "Mode Enfant", "Chaussures",
-      "Sacs & Accessoires", "Bijoux & Montres", "Beauté & Cosmétiques", "Santé & Bien-être",
-      "Maison & Décoration", "Cuisine & Arts de la table", "Meubles", "Bébé & Puériculture",
-      "Jouets & Jeux", "Sport & Plein air", "Auto & Moto", "Outillage & Bricolage",
-      "Papeterie & Fournitures scolaires", "Alimentation & Épicerie", "Animalerie", "Livres & Médias",
-      "Événements & Fêtes", "Autre"
+    // Liste complète des catégories pour ce type de site (marketplace généraliste type
+    // Shein/Amazon), chacune avec son icône (emoji pour les <select>, Font Awesome pour
+    // les vignettes du site) et des mots-clés utilisés pour détecter automatiquement
+    // l'icône d'une catégorie déjà existante en base (texte libre côté admin).
+    const MARKET_CATEGORIES = [
+      { name: "Électronique & Tech", emoji: "📱", icon: "fa-mobile-screen", keywords: ["électronique", "electronique", "tech", "gadget"] },
+      { name: "Téléphonie & Accessoires", emoji: "📞", icon: "fa-phone", keywords: ["téléphonie", "telephonie", "téléphone", "telephone", "smartphone"] },
+      { name: "Informatique & Accessoires", emoji: "💻", icon: "fa-laptop", keywords: ["informatique", "ordinateur", "laptop", "tablette", "pc"] },
+      { name: "Audio & Casques", emoji: "🎧", icon: "fa-headphones", keywords: ["audio", "casque", "écouteur", "ecouteur", "haut-parleur", "haut parleur"] },
+      { name: "Gaming & Consoles", emoji: "🎮", icon: "fa-gamepad", keywords: ["gaming", "jeu vidéo", "jeu video", "console", "manette"] },
+      { name: "Électroménagers", emoji: "🧊", icon: "fa-blender", keywords: ["électroménager", "electromenager", "frigo", "réfrigérateur", "refrigerateur", "climatiseur", "ventilateur", "cuisinière", "cuisiniere"] },
+      { name: "Mode Femme", emoji: "👗", icon: "fa-person-dress", keywords: ["mode femme", "robe"] },
+      { name: "Mode Homme", emoji: "👔", icon: "fa-shirt", keywords: ["mode homme", "chemise"] },
+      { name: "Mode Enfant", emoji: "🧒", icon: "fa-child-reaching", keywords: ["mode enfant"] },
+      { name: "Chaussures", emoji: "👟", icon: "fa-shoe-prints", keywords: ["chaussure", "chaussures", "sneaker", "basket"] },
+      { name: "Sacs & Accessoires", emoji: "👜", icon: "fa-bag-shopping", keywords: ["sac", "sacs", "accessoire", "accessoires"] },
+      { name: "Bijoux & Montres", emoji: "💍", icon: "fa-gem", keywords: ["bijou", "bijoux", "montre", "collier", "bracelet", "bague"] },
+      { name: "Beauté & Cosmétiques", emoji: "💄", icon: "fa-wand-magic-sparkles", keywords: ["beauté", "beaute", "cosmétique", "cosmetique", "maquillage"] },
+      { name: "Parfums & Sprays", emoji: "🧴", icon: "fa-spray-can-sparkles", keywords: ["parfum", "spray", "fragrance", "cologne", "eau de toilette"] },
+      { name: "Santé & Bien-être", emoji: "🩺", icon: "fa-heart-pulse", keywords: ["santé", "sante", "bien-être", "bien etre", "pharmacie"] },
+      { name: "Maison & Décoration", emoji: "🏠", icon: "fa-house-chimney", keywords: ["maison", "décoration", "decoration", "déco", "deco"] },
+      { name: "Cuisine & Arts de la table", emoji: "🍽️", icon: "fa-utensils", keywords: ["cuisine", "arts de la table", "vaisselle", "ustensile"] },
+      { name: "Meubles", emoji: "🛋️", icon: "fa-couch", keywords: ["meuble", "meubles"] },
+      { name: "Bébé & Puériculture", emoji: "🍼", icon: "fa-baby", keywords: ["bébé", "bebe", "puériculture", "puericulture", "poussette", "couche"] },
+      { name: "Jouets & Jeux", emoji: "🧸", icon: "fa-puzzle-piece", keywords: ["jouet", "jouets", "jeu de société", "jeu de societe"] },
+      { name: "Sport & Plein air", emoji: "⚽", icon: "fa-dumbbell", keywords: ["sport", "plein air", "fitness", "musculation"] },
+      { name: "Auto & Moto", emoji: "🚗", icon: "fa-car", keywords: ["auto", "moto", "voiture", "pneu"] },
+      { name: "Outillage & Bricolage", emoji: "🛠️", icon: "fa-toolbox", keywords: ["outillage", "bricolage", "outil", "outils"] },
+      { name: "Papeterie & Fournitures scolaires", emoji: "🖊️", icon: "fa-pen", keywords: ["papeterie", "fourniture", "scolaire", "cahier", "stylo"] },
+      { name: "Alimentation & Épicerie", emoji: "🛒", icon: "fa-basket-shopping", keywords: ["épicerie", "epicerie", "alimentation", "nourriture", "boisson", "food"] },
+      { name: "Animalerie", emoji: "🐾", icon: "fa-paw", keywords: ["animalerie", "animal", "chien", "chat"] },
+      { name: "Livres & Médias", emoji: "📚", icon: "fa-book", keywords: ["livre", "livres", "média", "media"] },
+      { name: "Événements & Fêtes", emoji: "🎉", icon: "fa-champagne-glasses", keywords: ["événement", "evenement", "fête", "fete"] },
+      { name: "Autre", emoji: "🏷️", icon: "fa-tag", keywords: [] }
     ];
+    const VENDOR_CATEGORIES = MARKET_CATEGORIES.map((c) => c.name);
 
     // Familles de produits détectées par mots-clés (catégorie + nom + description), pour affiner
     // les "produits similaires" au-delà du simple champ catégorie (qui peut être trop large/mal choisi).
@@ -804,21 +830,13 @@
       productDetail: { productId: null, activeImage: "", selectedMl: "", selectedColor: "", reviewRating: 0 }
     };
 
-    // Icônes de catégories (façade "vitrine") — détection par mots-clés, alignée
-    // sur la logique déjà utilisée côté admin pour les champs conditionnels.
-    const CATEGORY_ICONS = [
-      [/parfum|spray|fragrance|cosm/i, "fa-spray-can-sparkles"],
-      [/électro|electro|téléphone|telephone|ordinateur|informatique|tablette/i, "fa-mobile-screen"],
-      [/mode|vêtement|vetement|chaussure|accessoire/i, "fa-shirt"],
-      [/maison|meuble|déco|deco/i, "fa-couch"],
-      [/épicerie|epicerie|aliment|boisson/i, "fa-basket-shopping"],
-      [/beauté|beaute/i, "fa-wand-magic-sparkles"],
-      [/montre|bijou/i, "fa-gem"],
-      [/enfant|bébé|bebe|jouet/i, "fa-child-reaching"]
-    ];
+    // Icônes de catégories (façade "vitrine") — détection par mots-clés à partir de la
+    // liste complète MARKET_CATEGORIES, pour couvrir toutes les catégories possibles
+    // même si le texte exact en base diffère légèrement (accents, singulier/pluriel...).
     function categoryIcon(name) {
-      const match = CATEGORY_ICONS.find(([re]) => re.test(name || ""));
-      return match ? match[1] : "fa-tag";
+      const text = (name || "").toLowerCase();
+      const match = MARKET_CATEGORIES.find((c) => c.keywords.some((k) => text.includes(k)));
+      return match ? match.icon : "fa-tag";
     }
 
     // Moyenne des notes d'un produit à partir des avis chargés (state.reviews).
@@ -1359,7 +1377,7 @@
 
       // ----- Mode "inscription vendeur" -----
       if (!customer && state.authMode === "vendor") {
-        const categoryOptions = VENDOR_CATEGORIES.map((cat) => `<option value="${safeText(cat)}">${safeText(cat)}</option>`).join("");
+        const categoryOptions = MARKET_CATEGORIES.map((c) => `<option value="${safeText(c.name)}">${safeText(c.emoji)} ${safeText(c.name)}</option>`).join("");
         $("#accountContent").innerHTML = `
           <h3 style="margin-bottom:6px;">Devenir vendeur</h3>
           <p class="muted" style="margin-bottom:16px;">Remplissez ce formulaire, il sera envoyé directement sur notre WhatsApp pour le suivi de votre demande.</p>
