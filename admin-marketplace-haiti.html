@@ -348,6 +348,15 @@
     <div class="modal-body" id="proofContent"></div>
   </div>
 
+  <!-- ORDER DETAIL MODAL -->
+  <div id="orderDetailModal" class="modal" aria-label="Détails de la commande">
+    <div class="modal-header">
+      <h3>Détails de la commande</h3>
+      <button class="close-btn" type="button" data-close-modal><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="orderDetailContent"></div>
+  </div>
+
   <script>
     "use strict";
     // =====================================================================
@@ -864,7 +873,7 @@
             <td>${compact ? `<span class="status-pill ${getStatusClass(o.status)}">${safeText(o.status)}</span>` : `<select data-order-status="${o.id}"><option ${o.status === "En attente" ? "selected" : ""}>En attente</option><option ${o.status === "Validée" ? "selected" : ""}>Validée</option><option ${o.status === "En livraison" ? "selected" : ""}>En livraison</option><option ${o.status === "Livrée" ? "selected" : ""}>Livrée</option><option ${o.status === "Annulée" ? "selected" : ""}>Annulée</option></select>`}${paymentBadge(o)}</td>
             <td>${o.proofUrl ? `<span class="badge"><i class="fa-solid fa-check"></i> OUI</span>` : "<span class='muted'>-</span>"}</td>
             <td>${new Date(o.createdAt).toLocaleString("fr-FR")}</td>
-            ${compact ? "" : `<td><button class="btn-soft" type="button" data-view-proof="${o.id}" ${o.proofUrl ? "" : "disabled"}><i class="fa-solid fa-image"></i></button> <button class="btn-soft" type="button" data-validate-order="${o.id}" ${o.status === "En attente" && o.proofUrl ? "" : "disabled"}><i class="fa-solid fa-circle-check"></i> Valider</button> <button class="btn-soft" type="button" data-whatsapp="${o.id}"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button> <button class="btn-danger" type="button" data-delete-order="${o.id}"><i class="fa-solid fa-trash"></i></button></td>`}
+            ${compact ? "" : `<td><button class="btn-soft" type="button" data-view-order="${o.id}"><i class="fa-solid fa-circle-info"></i> Détails</button> <button class="btn-soft" type="button" data-view-proof="${o.id}" ${o.proofUrl ? "" : "disabled"}><i class="fa-solid fa-image"></i></button> <button class="btn-soft" type="button" data-validate-order="${o.id}" ${o.status === "En attente" && o.proofUrl ? "" : "disabled"}><i class="fa-solid fa-circle-check"></i> Valider</button> <button class="btn-soft" type="button" data-whatsapp="${o.id}"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button> <button class="btn-danger" type="button" data-delete-order="${o.id}"><i class="fa-solid fa-trash"></i></button></td>`}
           </tr>`).join("") || `<tr><td colspan="${compact ? 6 : 8}">Aucune commande.</td></tr>`}
         </tbody>
       </table></div>`;
@@ -1488,6 +1497,24 @@
         await deleteRows("orders", id);
         await logAudit("Commande supprimée", `ID: ${id}`);
         renderAll();
+      }
+
+      if (target.matches("[data-view-order]")) {
+        const order = state.orders.find(o => o.id === target.dataset.viewOrder);
+        if (!order) return;
+        const itemsList = order.items.map((i) => `<li>${safeText(i.name)}${i.variantLabel ? ' (' + safeText(i.variantLabel) + ')' : ''} x${i.quantity} — ${money(i.price * i.quantity)}</li>`).join("");
+        $("#orderDetailContent").innerHTML = `
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div><span class="muted">Commande</span><br><strong>${safeText(order.id)}</strong></div>
+            <div><span class="muted">Client</span><br><strong>${safeText(order.customerName)}</strong>${order.customerUsername ? ` (@${safeText(order.customerUsername)})` : ""}<br>${safeText(order.customerPhone)}</div>
+            <div><span class="muted">Adresse de livraison</span><br><strong>${safeText(order.address) || "<em>Non renseignée</em>"}</strong></div>
+            <div><span class="muted">Téléphone de réception</span><br><strong>${safeText(order.receptionPhone) || safeText(order.customerPhone)}</strong></div>
+            <div><span class="muted">Notes additionnelles du client</span><br><strong>${order.notes ? safeText(order.notes) : "<em>Aucune note</em>"}</strong></div>
+            <div><span class="muted">Articles</span><ul style="margin:6px 0 0 18px;">${itemsList}</ul></div>
+            <div><span class="muted">Total</span><br><strong>${money(order.total)}</strong></div>
+          </div>
+        `;
+        openModal("#orderDetailModal");
       }
 
       if (target.matches("[data-view-proof]")) {
