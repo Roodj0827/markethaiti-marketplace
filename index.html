@@ -267,6 +267,12 @@
     .pd-rating-summary { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13px; color: var(--text2); font-weight: 700; }
     .pd-rating-summary i { color: var(--sun); font-size: 13px; }
     .pd-price { font-family: "Plus Jakarta Sans"; color: var(--brand); font-size: 26px; font-weight: 800; margin-bottom: 12px; }
+    .pd-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+    .share-wrap { position: relative; flex: 0 0 auto; }
+    .share-menu { position: absolute; top: calc(100% + 6px); right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.12); padding: 6px; z-index: 40; min-width: 180px; }
+    .share-menu-item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 10px; border-radius: 8px; border: 0; background: transparent; font-weight: 700; font-size: 13.5px; color: var(--ink); }
+    .share-menu-item:hover { background: var(--surface2); }
+    .share-menu-item i { width: 16px; color: var(--brand); }
     .pd-desc { color: var(--text2); font-size: 14px; margin-bottom: 16px; }
     .pd-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
     .pd-spec { background: var(--surface); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; }
@@ -1066,6 +1072,7 @@
         // L'interface n'est révélée qu'une fois toutes les données récupérées
         revealApp();
         handleMoncashReturn();
+        handleSharedProductLink();
       } catch (err) {
         console.error("Error in seedData:", err);
         // On révèle quand même l'app (avec un catalogue vide) plutôt que de
@@ -1080,6 +1087,19 @@
     // simplement notre propre table (pas ZAFEW directement) jusqu'à ce que
     // le webhook ait fait son travail, plutôt que de se fier au seul retour
     // navigateur — conforme à la recommandation de sécurité ZAFEW.
+    // Ouvre automatiquement la fiche produit quand un client arrive via un lien
+    // partagé (?produit=ID généré par le bouton "Partager" de la fiche produit).
+    function handleSharedProductLink() {
+      const params = new URLSearchParams(window.location.search);
+      const productId = params.get("produit");
+      if (!productId) return;
+      window.history.replaceState({}, "", window.location.pathname);
+      if (state.products.some((p) => p.id === productId)) {
+        renderProductDetailModal(productId);
+        openModal("#productDetailModal");
+      }
+    }
+
     function handleMoncashReturn() {
       const params = new URLSearchParams(window.location.search);
       const paiement = params.get("paiement");
@@ -1687,7 +1707,20 @@
             ${gallery.length > 1 ? `<div class="pd-thumbs">${gallery.map((img) => `<button type="button" class="pd-thumb ${img === activeImg ? "active" : ""}" data-select-image="${safeText(img)}"><img src="${safeText(img)}" alt=""></button>`).join("")}</div>` : ""}
           </div>
           <div>
-            <div class="pd-vendor">${safeText(p.vendorName)}</div>
+            <div class="pd-header-row">
+              <div class="pd-vendor">${safeText(p.vendorName)}</div>
+              <div class="share-wrap">
+                <button class="btn-soft" type="button" id="pdShareBtn" title="Partager ce produit"><i class="fa-solid fa-share-nodes"></i> Partager</button>
+                <div class="share-menu" id="pdShareMenu" hidden>
+                  <button type="button" class="share-menu-item" data-share-channel="whatsapp"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+                  <button type="button" class="share-menu-item" data-share-channel="facebook"><i class="fa-brands fa-facebook"></i> Facebook</button>
+                  <button type="button" class="share-menu-item" data-share-channel="messenger"><i class="fa-brands fa-facebook-messenger"></i> Messenger</button>
+                  <button type="button" class="share-menu-item" data-share-channel="twitter"><i class="fa-brands fa-x-twitter"></i> X (Twitter)</button>
+                  <button type="button" class="share-menu-item" data-share-channel="telegram"><i class="fa-brands fa-telegram"></i> Telegram</button>
+                  <button type="button" class="share-menu-item" data-share-channel="copy"><i class="fa-regular fa-copy"></i> Copier le lien</button>
+                </div>
+              </div>
+            </div>
             <h2 class="pd-name">${safeText(p.name)}</h2>
             <div class="pd-rating-summary">${ratingInfo.count ? `${starsHtml(ratingInfo.avg)} <span>${ratingInfo.avg.toFixed(1)} · ${ratingInfo.count} avis</span>` : `<span>Pas encore d'avis</span>`}</div>
             <div class="pd-price" id="pdPrice">${(p.compareAtPrice && Number(p.compareAtPrice) > Number(p.price) && effectivePrice === Number(p.price)) ? `<span class="product-compare-price" style="font-size:15px;">${money(p.compareAtPrice)}</span> ` : ""}${money(effectivePrice)}</div>
@@ -1758,6 +1791,36 @@
           renderProductDetailModal(productId);
         }));
         $("#pdAddToCart")?.addEventListener("click", () => addToCartWithVariant(productId));
+
+        $("#pdShareBtn")?.addEventListener("click", () => {
+          const shareUrl = `${window.location.origin}${window.location.pathname}?produit=${productId}`;
+          if (navigator.share) {
+            navigator.share({ title: p.name, text: `Découvrez "${p.name}" sur ${state.settings.storeName || "MarketHaiti"} !`, url: shareUrl }).catch(() => {});
+          } else {
+            $("#pdShareMenu").hidden = !$("#pdShareMenu").hidden;
+          }
+        });
+        $$("[data-share-channel]").forEach((btn) => btn.addEventListener("click", () => {
+          const shareUrl = `${window.location.origin}${window.location.pathname}?produit=${productId}`;
+          const text = `Découvrez "${p.name}" sur ${state.settings.storeName || "MarketHaiti"} !`;
+          const channel = btn.dataset.shareChannel;
+          const links = {
+            whatsapp: `https://wa.me/?text=${encodeURIComponent(text + " " + shareUrl)}`,
+            facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+            messenger: `https://www.facebook.com/dialog/send?link=${encodeURIComponent(shareUrl)}&app_id=&redirect_uri=${encodeURIComponent(shareUrl)}`,
+            twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`,
+            telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`
+          };
+          if (channel === "copy") {
+            navigator.clipboard?.writeText(shareUrl).then(() => {
+              btn.innerHTML = `<i class="fa-solid fa-check"></i> Lien copié !`;
+              setTimeout(() => { btn.innerHTML = `<i class="fa-regular fa-copy"></i> Copier le lien`; }, 1800);
+            });
+          } else if (links[channel]) {
+            window.open(links[channel], "_blank", "noopener,noreferrer");
+          }
+          $("#pdShareMenu").hidden = true;
+        }));
 
         $$("[data-review-star]").forEach((btn) => btn.addEventListener("click", () => {
           state.productDetail.reviewRating = Number(btn.dataset.reviewStar);
@@ -1894,6 +1957,11 @@
       if (openTarget) {
         renderProductDetailModal(openTarget.dataset.openProduct);
         openModal("#productDetailModal");
+      }
+
+      const shareMenu = $("#pdShareMenu");
+      if (shareMenu && !shareMenu.hidden && !shareMenu.contains(event.target) && !event.target.closest("#pdShareBtn")) {
+        shareMenu.hidden = true;
       }
 
       const target = event.target.closest("button");
