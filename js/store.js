@@ -1743,7 +1743,12 @@
               "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
               "apikey": SUPABASE_ANON_KEY,
             },
-            body: JSON.stringify({ orderId: order.id }),
+            body: JSON.stringify({
+              orderId: order.id,
+              // Base de retour : MonCash redirige le client vers la boutique
+              // (domaine courant — localhost en dev, Vercel en prod)
+              returnBaseUrl: window.location.origin + window.location.pathname
+            }),
           });
           const data = await res.json();
           if (!res.ok || !data.payment_url) {

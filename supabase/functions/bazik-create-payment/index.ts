@@ -42,8 +42,18 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {
-    const { orderId } = await req.json();
+    const { orderId, returnBaseUrl } = await req.json();
     if (!orderId) return json({ error: "orderId manquant" }, 400);
+
+    // URL de retour envoyées à MonCash (après paiement réussi ou annulé, le
+    // client revient directement sur la boutique au lieu de rester coincé
+    // sur la page MonCash). On n'accepte qu'une base http(s) fournie par le
+    // client (domaine Vercel, localhost, etc.).
+    const base = typeof returnBaseUrl === "string" && /^https?:\/\//.test(returnBaseUrl)
+      ? returnBaseUrl.split("?")[0]
+      : "";
+    const successUrl = base ? `${base}?paiement=succes&commande=${encodeURIComponent(orderId)}` : undefined;
+    const errorUrl = base ? `${base}?paiement=annule&commande=${encodeURIComponent(orderId)}` : undefined;
 
     const BAZIK_USER_ID = Deno.env.get("BAZIK_USER_ID") || "";
     const BAZIK_SECRET_KEY = Deno.env.get("BAZIK_SECRET_KEY") || "";
@@ -81,6 +91,8 @@ Deno.serve(async (req) => {
         gdes: amount,
         description: `MarketHaiti — commande ${orderId}`,
         referenceId: orderId,
+        ...(successUrl && { successUrl }),
+        ...(errorUrl && { errorUrl }),
       }),
     });
     const payData = await payRes.json().catch(() => ({}));
