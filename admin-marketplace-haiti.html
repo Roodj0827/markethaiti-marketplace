@@ -152,6 +152,14 @@
 
       <!-- ORDERS -->
       <section id="ordersView" class="view">
+        <div class="orders-filter-bar" id="ordersFilterBar">
+          <button class="filter-btn active" type="button" data-order-filter="actives">En cours</button>
+          <button class="filter-btn" type="button" data-order-filter="En attente">En attente</button>
+          <button class="filter-btn" type="button" data-order-filter="Validée">Validée</button>
+          <button class="filter-btn" type="button" data-order-filter="En livraison">En livraison</button>
+          <button class="filter-btn" type="button" data-order-filter="Livrée">Livrée</button>
+          <button class="filter-btn" type="button" data-order-filter="abandonees">Annulées / non payées</button>
+        </div>
         <div class="panel">
           <div class="panel-header"><h2>Commandes</h2><p class="muted">Gestion du statut et de la preuve</p></div>
           <div id="ordersTable"></div>

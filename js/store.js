@@ -811,6 +811,7 @@
             <div class="field"><label for="vendorEmail">Email</label><input id="vendorEmail" type="email" required placeholder="boutique@example.com"></div>
             <div class="field full"><label for="vendorAddress">Adresse</label><input id="vendorAddress" type="text" required placeholder="Rue, ville, département"></div>
             <div class="field full"><label for="vendorCategory">Catégorie de produits</label><select id="vendorCategory" required><option value="" disabled selected>Choisir une catégorie</option>${categoryOptions}</select></div>
+            <div class="field full"><label for="vendorLogoFile">Logo de la boutique (optionnel — modifiable ensuite dans l'espace vendeur)</label><input id="vendorLogoFile" type="file" accept="image/*"></div>
             <div class="field full"><label for="vendorPassword">Mot de passe</label><input id="vendorPassword" type="password" required minlength="6" placeholder="Minimum 6 caractères"></div>
             <div class="field full"><button class="btn-primary" type="submit">${icon('store')} Créer mon compte vendeur</button></div>
             <p id="vendorError" class="error-text"></p>
@@ -838,6 +839,12 @@
             }
             const submitBtn = e.target.querySelector("button[type='submit']");
             submitBtn.disabled = true;
+            // Logo optionnel : uploadé vers le bucket "images" si fourni
+            let logo = "";
+            const logoFile = $("#vendorLogoFile");
+            if (logoFile && logoFile.files.length > 0) {
+              logo = await uploadFileToBucket("images", logoFile.files[0]) || "";
+            }
             const vendors = await readStore("vendors", []);
             const duplicate = (vendors || []).find((v) => (v.email || "").toLowerCase() === email || v.phone === phone);
             if (duplicate) {
@@ -857,7 +864,7 @@
               dueBalance: 0,
               paymentMethod: "MonCash",
               paymentDetails: "",
-              logo: "",
+              logo,
               status: "pending",
               createdAt: new Date().toISOString()
             };

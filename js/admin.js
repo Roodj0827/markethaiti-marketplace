@@ -73,6 +73,7 @@
 
     const state = {
       products: [], customers: [], orders: [], vendors: [], view: "dashboard", paymentType: "moncash",
+      orderFilter: "actives", // filtre de la vue Commandes : "actives" | statut | "abandonees"
       settings: {}, payments: {}, announcements: {}, auditLog: [],
       attributeOptions: {}, // { category: [...], brand: [...], color: [...], ram: [...], rom: [...], ml: [...], condition: [...] }
       formGallery: [], // URLs des images secondaires (imageGallery) en cours d'édition dans le formulaire produit
@@ -433,8 +434,9 @@
         const vendor = state.vendors.find((v) => v.id === item.vendorId);
         if (!vendor || vendor.id === "vendor-ma-boutique") return;
         const itemTotal = Number(item.price) * Number(item.quantity);
-        const commissionRate = Number((vendor.commission ?? state.settings.globalCommission) || 0);
-        vendor.dueBalance = Number(vendor.dueBalance || 0) + itemTotal * (commissionRate / 100);
+        // Part du vendeur = sa commission propre, sinon 100% − la commission plateforme
+        const vendorShareRate = Number(vendor.commission ?? (100 - (Number(state.settings.globalCommission) || 0)));
+        vendor.dueBalance = Number(vendor.dueBalance || 0) + itemTotal * (vendorShareRate / 100);
       });
       order.dueApplied = true;
     }
@@ -534,7 +536,22 @@
       </table></div>`;
     }
 
-    function renderOrders() { $("#ordersTable").innerHTML = renderOrdersTable(); }
+    // Commande "abandonnée" : annulée, ou paiement échoué/annulé — elle ne doit
+    // pas encombrer la vue principale (un client a pu tenter de payer puis
+    // partir sans jamais finaliser).
+    function isAbandonedOrder(o) {
+      return o.status === "Annulée" || o.paymentStatus === "failed" || o.paymentStatus === "cancelled";
+    }
+
+    function renderOrders() {
+      const f = state.orderFilter || "actives";
+      let list = state.orders;
+      if (f === "actives") list = list.filter((o) => !isAbandonedOrder(o));
+      else if (f === "abandonees") list = list.filter(isAbandonedOrder);
+      else list = list.filter((o) => o.status === f);
+      $$("#ordersFilterBar [data-order-filter]").forEach((b) => b.classList.toggle("active", b.dataset.orderFilter === f));
+      $("#ordersTable").innerHTML = renderOrdersTable(list);
+    }
 
     // Balayage silencieux : demande à bazik-verify-payment de vérifier TOUTES
     // les commandes MonCash "pending" auprès de Bazik (mode sweep, body {}).
@@ -703,7 +720,8 @@
           if (vendor?.id === "vendor-ma-boutique" || vendor?.commission === 100) {
             maBoutiqueSales += itemTotal;
           } else if (vendor) {
-            const vendorShare = itemTotal * (Number(vendor.commission) / 100);
+            const shareRate = Number(vendor.commission ?? (100 - (Number(state.settings.globalCommission) || 0)));
+            const vendorShare = itemTotal * (shareRate / 100);
             platformCommission += (itemTotal - vendorShare);
           } else {
             platformCommission += itemTotal * (state.settings.globalCommission / 100);
@@ -1092,6 +1110,12 @@
     function renderVendorsTable() {
       const el = $("#vendorsTable");
       if (!el) return;
+      // Badge rouge sur l'onglet Vendeurs quand des comptes attendent validation
+      const pendingCount = state.vendors.filter((v) => v.status === "pending").length;
+      const vendorTab = document.querySelector('[data-view="vendors"]');
+      if (vendorTab) {
+        vendorTab.innerHTML = `${icon('store')} Vendeurs${pendingCount ? ` <span class="tab-badge">${pendingCount}</span>` : ""}`;
+      }
       // Comptes en attente de validation affichés en premier
       const sorted = [...state.vendors].sort((a, b) => (a.status === "pending" ? -1 : 0) - (b.status === "pending" ? -1 : 0));
       const statusPill = (v) => {
@@ -1110,7 +1134,7 @@
           : v.status === "suspended"
           ? `<button class="btn-soft" type="button" data-approve-vendor="${v.id}" title="Réactiver">${icon('rotate-ccw')} Réactiver</button>`
           : `<button class="btn-soft" type="button" data-suspend-vendor="${v.id}" title="Suspendre l'accès au portail">${icon('ban')}</button>`;
-        return `<tr><td>${v.logo ? `<img class="thumb" src="${safeText(v.logo)}">` : ""}</td><td><strong>${safeText(v.name)}</strong><br><span class="muted">${safeText(v.ownerName || "")}${productCount ? ` · ${productCount} produit(s)` : ""}</span></td><td>${safeText(v.phone)}<br><span class="muted">${safeText(v.email || "")}</span></td><td>${statusPill(v)}</td><td>${Number(v.commission ?? state.settings.globalCommission)}%</td><td>${money(totalSales)}</td><td>${money(due)}</td><td>${statusActions} <button class="btn-soft" type="button" data-edit-vendor="${v.id}">${icon('pencil')}</button> ${self ? "" : `<button class="btn-soft" type="button" data-reset-due="${v.id}" title="Soldé">${icon('rotate-ccw')}</button>`} ${self ? "" : `<button class="btn-danger" type="button" data-delete-vendor="${v.id}">${icon('trash-2')}</button>`}</td></tr>`;
+        return `<tr><td>${v.logo ? `<img class="thumb" src="${safeText(v.logo)}">` : ""}</td><td><strong>${safeText(v.name)}</strong><br><span class="muted">${safeText(v.ownerName || "")}${productCount ? ` · ${productCount} produit(s)` : ""}</span></td><td>${safeText(v.phone)}<br><span class="muted">${safeText(v.email || "")}</span></td><td>${statusPill(v)}</td><td>${Number(v.commission ?? (100 - (Number(state.settings.globalCommission) || 0)))}%</td><td>${money(totalSales)}</td><td>${money(due)}</td><td>${statusActions} <button class="btn-soft" type="button" data-edit-vendor="${v.id}">${icon('pencil')}</button> ${self ? "" : `<button class="btn-soft" type="button" data-reset-due="${v.id}" title="Soldé">${icon('rotate-ccw')}</button>`} ${self ? "" : `<button class="btn-danger" type="button" data-delete-vendor="${v.id}">${icon('trash-2')}</button>`}</td></tr>`;
       }).join("") || `<tr><td colspan="8">Aucun vendeur.</td></tr>`}</tbody></table></div>`;
     }
 
@@ -1182,7 +1206,12 @@
         logAudit("Vue changée", state.view);
       }
 
-      if (target.matches("[data-payment-type]")) { 
+      if (target.matches("[data-order-filter]")) {
+        state.orderFilter = target.dataset.orderFilter;
+        renderOrders();
+      }
+
+      if (target.matches("[data-payment-type]")) {
         state.paymentType = target.dataset.paymentType; 
         $$(".sub-tab").forEach(t => t.classList.toggle("active", t.dataset.paymentType === state.paymentType)); 
         renderPaymentFields(); 
