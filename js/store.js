@@ -1049,13 +1049,21 @@
     }
 
     // Envoie l'email de réinitialisation via Supabase Auth. Si l'email n'a
-    // pas encore de compte Auth associé (ancien client), on en crée un
-    // silencieusement avec un mot de passe temporaire aléatoire, uniquement
-    // pour permettre l'envoi du lien — le client définira son propre mot de
-    // passe en cliquant sur le lien reçu.
+    // pas encore de compte Auth associé (ancien client, ou client qui a
+    // ajouté son email après coup), on en crée un silencieusement avec un
+    // mot de passe aléatoire — sinon Supabase n'enverrait jamais le lien
+    // (resetPasswordForEmail ignore silencieusement les emails inconnus).
     async function sendPasswordResetEmail(email) {
       if (!supabase) return false;
       try {
+        // Garantit l'existence d'un compte Auth pour cet email
+        const { error: signUpError } = await supabase.auth.signUp({
+          email,
+          password: `tmp-${crypto.randomUUID()}`
+        });
+        if (signUpError && !/already registered|already been registered/i.test(signUpError.message || "")) {
+          console.error("Erreur création compte Auth de secours:", signUpError);
+        }
         const redirectTo = window.location.origin + window.location.pathname + "?recovery=1";
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
         if (error) { console.error("Erreur resetPasswordForEmail:", error); return false; }
