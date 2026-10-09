@@ -80,34 +80,34 @@
     // les vignettes du site) et des mots-clés utilisés pour détecter automatiquement
     // l'icône d'une catégorie déjà existante en base (texte libre côté admin).
     const MARKET_CATEGORIES = [
-      { name: "Électronique & Tech", icon: "tag", keywords: ["électronique", "electronique", "tech", "gadget"] },
-      { name: "Téléphonie & Accessoires", icon: "tag", keywords: ["téléphonie", "telephonie", "téléphone", "telephone", "smartphone"] },
-      { name: "Informatique & Accessoires", icon: "tag", keywords: ["informatique", "ordinateur", "laptop", "tablette", "pc"] },
-      { name: "Audio & Casques", icon: "tag", keywords: ["audio", "casque", "écouteur", "ecouteur", "haut-parleur", "haut parleur"] },
-      { name: "Gaming & Consoles", icon: "tag", keywords: ["gaming", "jeu vidéo", "jeu video", "console", "manette"] },
-      { name: "Électroménagers", icon: "tag", keywords: ["électroménager", "electromenager", "frigo", "réfrigérateur", "refrigerateur", "climatiseur", "ventilateur", "cuisinière", "cuisiniere"] },
-      { name: "Mode Femme", icon: "tag", keywords: ["mode femme", "robe"] },
-      { name: "Mode Homme", icon: "tag", keywords: ["mode homme", "chemise"] },
-      { name: "Mode Enfant", icon: "tag", keywords: ["mode enfant"] },
-      { name: "Chaussures", icon: "tag", keywords: ["chaussure", "chaussures", "sneaker", "basket"] },
-      { name: "Sacs & Accessoires", icon: "tag", keywords: ["sac", "sacs", "accessoire", "accessoires"] },
-      { name: "Bijoux & Montres", icon: "tag", keywords: ["bijou", "bijoux", "montre", "collier", "bracelet", "bague"] },
-      { name: "Beauté & Cosmétiques", icon: "tag", keywords: ["beauté", "beaute", "cosmétique", "cosmetique", "maquillage"] },
-      { name: "Parfums & Sprays", icon: "tag", keywords: ["parfum", "spray", "fragrance", "cologne", "eau de toilette"] },
-      { name: "Santé & Bien-être", icon: "tag", keywords: ["santé", "sante", "bien-être", "bien etre", "pharmacie"] },
-      { name: "Maison & Décoration", icon: "tag", keywords: ["maison", "décoration", "decoration", "déco", "deco"] },
-      { name: "Cuisine & Arts de la table", icon: "tag", keywords: ["cuisine", "arts de la table", "vaisselle", "ustensile"] },
-      { name: "Meubles", icon: "tag", keywords: ["meuble", "meubles"] },
-      { name: "Bébé & Puériculture", icon: "tag", keywords: ["bébé", "bebe", "puériculture", "puericulture", "poussette", "couche"] },
-      { name: "Jouets & Jeux", icon: "tag", keywords: ["jouet", "jouets", "jeu de société", "jeu de societe"] },
-      { name: "Sport & Plein air", icon: "tag", keywords: ["sport", "plein air", "fitness", "musculation"] },
-      { name: "Auto & Moto", icon: "tag", keywords: ["auto", "moto", "voiture", "pneu"] },
-      { name: "Outillage & Bricolage", icon: "tag", keywords: ["outillage", "bricolage", "outil", "outils"] },
-      { name: "Papeterie & Fournitures scolaires", icon: "tag", keywords: ["papeterie", "fourniture", "scolaire", "cahier", "stylo"] },
-      { name: "Alimentation & Épicerie", icon: "tag", keywords: ["épicerie", "epicerie", "alimentation", "nourriture", "boisson", "food"] },
-      { name: "Animalerie", icon: "tag", keywords: ["animalerie", "animal", "chien", "chat"] },
-      { name: "Livres & Médias", icon: "tag", keywords: ["livre", "livres", "média", "media"] },
-      { name: "Événements & Fêtes", icon: "tag", keywords: ["événement", "evenement", "fête", "fete"] },
+      { name: "Électronique & Tech", icon: "zap", keywords: ["électronique", "electronique", "tech", "gadget"] },
+      { name: "Téléphonie & Accessoires", icon: "smartphone", keywords: ["téléphonie", "telephonie", "téléphone", "telephone", "smartphone"] },
+      { name: "Informatique & Accessoires", icon: "laptop", keywords: ["informatique", "ordinateur", "laptop", "tablette", "pc"] },
+      { name: "Audio & Casques", icon: "headphones", keywords: ["audio", "casque", "écouteur", "ecouteur", "haut-parleur", "haut parleur"] },
+      { name: "Gaming & Consoles", icon: "gamepad-2", keywords: ["gaming", "jeu vidéo", "jeu video", "console", "manette"] },
+      { name: "Électroménagers", icon: "refrigerator", keywords: ["électroménager", "electromenager", "frigo", "réfrigérateur", "refrigerateur", "climatiseur", "ventilateur", "cuisinière", "cuisiniere"] },
+      { name: "Mode Femme", icon: "ribbon", keywords: ["mode femme", "robe"] },
+      { name: "Mode Homme", icon: "shirt", keywords: ["mode homme", "chemise"] },
+      { name: "Mode Enfant", icon: "baby", keywords: ["mode enfant"] },
+      { name: "Chaussures", icon: "footprints", keywords: ["chaussure", "chaussures", "sneaker", "basket"] },
+      { name: "Sacs & Accessoires", icon: "backpack", keywords: ["sac", "sacs", "accessoire", "accessoires"] },
+      { name: "Bijoux & Montres", icon: "gem", keywords: ["bijou", "bijoux", "montre", "collier", "bracelet", "bague"] },
+      { name: "Beauté & Cosmétiques", icon: "sparkles", keywords: ["beauté", "beaute", "cosmétique", "cosmetique", "maquillage"] },
+      { name: "Parfums & Sprays", icon: "spray-can", keywords: ["parfum", "spray", "fragrance", "cologne", "eau de toilette"] },
+      { name: "Santé & Bien-être", icon: "heart-pulse", keywords: ["santé", "sante", "bien-être", "bien etre", "pharmacie"] },
+      { name: "Maison & Décoration", icon: "house", keywords: ["maison", "décoration", "decoration", "déco", "deco"] },
+      { name: "Cuisine & Arts de la table", icon: "utensils", keywords: ["cuisine", "arts de la table", "vaisselle", "ustensile"] },
+      { name: "Meubles", icon: "sofa", keywords: ["meuble", "meubles"] },
+      { name: "Bébé & Puériculture", icon: "baby", keywords: ["bébé", "bebe", "puériculture", "puericulture", "poussette", "couche"] },
+      { name: "Jouets & Jeux", icon: "puzzle", keywords: ["jouet", "jouets", "jeu de société", "jeu de societe"] },
+      { name: "Sport & Plein air", icon: "dumbbell", keywords: ["sport", "plein air", "fitness", "musculation"] },
+      { name: "Auto & Moto", icon: "car", keywords: ["auto", "moto", "voiture", "pneu"] },
+      { name: "Outillage & Bricolage", icon: "wrench", keywords: ["outillage", "bricolage", "outil", "outils"] },
+      { name: "Papeterie & Fournitures scolaires", icon: "pen", keywords: ["papeterie", "fourniture", "scolaire", "cahier", "stylo"] },
+      { name: "Alimentation & Épicerie", icon: "shopping-basket", keywords: ["épicerie", "epicerie", "alimentation", "nourriture", "boisson", "food"] },
+      { name: "Animalerie", icon: "paw-print", keywords: ["animalerie", "animal", "chien", "chat"] },
+      { name: "Livres & Médias", icon: "book-open", keywords: ["livre", "livres", "média", "media"] },
+      { name: "Événements & Fêtes", icon: "party-popper", keywords: ["événement", "evenement", "fête", "fete"] },
       { name: "Autre", icon: "tag", keywords: [] }
     ];
     const VENDOR_CATEGORIES = MARKET_CATEGORIES.map((c) => c.name);
@@ -1367,7 +1367,7 @@
       const vendors = [...new Set(activeProducts.map((p) => p.vendorName))];
 
       $("#categoryFilters").innerHTML = categories.map((cat) => `
-        <button class="filter-btn ${state.filters.category === cat ? "active" : ""}" type="button" data-filter-category="${cat}">${safeText(cat)}</button>
+        <button class="filter-btn ${state.filters.category === cat ? "active" : ""}" type="button" data-filter-category="${cat}">${icon(categoryIcon(cat))} ${safeText(cat)}</button>
       `).join("");
 
       $("#vendorFilters").innerHTML = vendors.map((vendor) => `

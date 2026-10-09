@@ -419,3 +419,6 @@
 .add-to-cart .lucide { width: 17px; height: 17px; }
 .support-icon .lucide { width: 20px; height: 20px; }
 .btn-primary .lucide, .btn-soft .lucide, .btn-outline .lucide, .btn-danger .lucide, .text-btn .lucide, .icon-btn .lucide { width: 17px; height: 17px; }
+
+.filter-btn .lucide { width: 15px; height: 15px; margin-right: 6px; vertical-align: -2px; }
+.category-chip-card .lucide { display: block; }
