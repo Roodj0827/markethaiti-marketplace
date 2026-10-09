@@ -1,0 +1,51 @@
+/* =====================================================================
+   MarketHaiti — Espace Vendeur (réutilise css/admin.css)
+   Styles spécifiques : écran de connexion + petites variantes vendeur.
+   ===================================================================== */
+
+.vendor-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--bg);
+}
+
+.vendor-login-card {
+  width: min(430px, 100%);
+  background: var(--surface, #fff);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 28px;
+  box-shadow: var(--shadow-lg, 0 12px 40px rgba(0,0,0,.08));
+}
+
+.vendor-login-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  font-size: 18px;
+}
+
+.vendor-login-brand .muted { display: block; font-size: 12.5px; }
+
+.vendor-brand-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: var(--brand);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.vendor-brand-mark .lucide { width: 22px; height: 22px; }
+
+/* Badge statut vendeur dans la sidebar */
+.status-pill.pending { background: #fef3c7; color: #92400e; }
+.status-pill.suspended { background: #fee2e2; color: #991b1b; }
+
+/* Miniatures produits dans les tableaux */
+.thumb { width: 42px; height: 42px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); }
